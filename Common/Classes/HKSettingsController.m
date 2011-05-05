@@ -41,15 +41,15 @@ static HKSettingsController *gHKSettingsController = nil;
 + (id)allocWithZone:(NSZone *)zone
 {
     @synchronized(self)
-	{
+    {
         if ( gHKSettingsController == nil )
-		{
+        {
             gHKSettingsController = [super allocWithZone:zone];
-			
+            
             return gHKSettingsController;
         }
     }
-	
+    
     return nil;
 }
 
@@ -79,23 +79,23 @@ static HKSettingsController *gHKSettingsController = nil;
 
 - (id)init
 {
-	if ( self = [super init] )
-	{
-		[self setup];
-	}
-	
-	return self;
+    if ( self = [super init] )
+    {
+        [self setup];
+    }
+    
+    return self;
 }
 
 - (void)dealloc
 {
 #ifdef HK_DEBUG_DEALLOC
-	NSLog(@"Dealloc: %@", self);
+    NSLog(@"Dealloc: %@", self);
 #endif
-	[_definition release]; _definition = nil;
-	[_settings release]; _settings = nil;
+    [_definition release]; _definition = nil;
+    [_settings release]; _settings = nil;
     [_callbacks release]; _callbacks = nil;
-	[super dealloc];
+    [super dealloc];
 }
 
 #pragma mark HKPublic API
@@ -103,29 +103,29 @@ static HKSettingsController *gHKSettingsController = nil;
 + (HKSettingsController *)defaultController
 {
     @synchronized ( self )
-	{
+    {
         if ( gHKSettingsController == nil )
-		{
+        {
             [[self alloc] init];
         }
     }
-	
+    
     return gHKSettingsController;
 }
 
 - (void)save
 {
     NSMutableDictionary *settings;
-	NSUserDefaults      *defaults = [NSUserDefaults standardUserDefaults];
-	NSData              *sdata = nil;
-	NSError             *error = nil;
+    NSUserDefaults      *defaults = [NSUserDefaults standardUserDefaults];
+    NSData              *sdata = nil;
+    NSError             *error = nil;
     NSArray             *transformers = nil;
     NSValueTransformer  *transformer = nil;
     id                   name;
     id                   key;
     id                   value;
     id                   tvalue;
-	
+    
     @synchronized (self)
     {
         if ( _settings == nil )
@@ -138,7 +138,7 @@ static HKSettingsController *gHKSettingsController = nil;
         
         settings = [NSMutableDictionary dictionaryWithDictionary:_settings];
     }
-	
+    
     transformers = [_definition objectForKey:HK_SETTINGS_DEFINITION_KEY_TRANSFORMERS];
         
     for ( NSDictionary *tinfo in transformers )
@@ -171,60 +171,60 @@ static HKSettingsController *gHKSettingsController = nil;
         [settings setObject:tvalue forKey:key];
     }
     
-	sdata = [NSPropertyListSerialization dataWithPropertyList:settings format:NSPropertyListBinaryFormat_v1_0 options:0 error:&error];
-	
-	if ( sdata == nil )
-	{
+    sdata = [NSPropertyListSerialization dataWithPropertyList:settings format:NSPropertyListBinaryFormat_v1_0 options:0 error:&error];
+    
+    if ( sdata == nil )
+    {
 #ifdef HK_DEBUG_SETTINGS
-		NSLog(@"HKSettingsController->Error: '%@'", error);
+        NSLog(@"HKSettingsController->Error: '%@'", error);
 #endif
-		return;
-	}
-	
+        return;
+    }
+    
 #ifdef HK_DEBUG_SETTINGS
-	NSLog(@"HKSettingsController->Saved settings data size: %lu bytes", [sdata length] );
+    NSLog(@"HKSettingsController->Saved settings data size: %lu bytes", [sdata length] );
 #endif
-	
-	[defaults setObject:sdata forKey:HK_USER_DEFAULTS_KEY_SETTINGS];
-	[defaults synchronize];
+    
+    [defaults setObject:sdata forKey:HK_USER_DEFAULTS_KEY_SETTINGS];
+    [defaults synchronize];
 }
 
 - (void)restoreToDefaults
 {
-	@synchronized (self)
-	{
-		_settings = [[NSMutableDictionary alloc] init];
-	}
-	
-	[self loadDefaultValues];
+    @synchronized (self)
+    {
+        _settings = [[NSMutableDictionary alloc] init];
+    }
+    
+    [self loadDefaultValues];
 }
 
 - (id)settingForKey:(id)key
 {
-	id value;
-	
-	@synchronized (self)
-	{
-		value = [_settings objectForKey:key];
-	}
-	
-	return value;
+    id value;
+    
+    @synchronized (self)
+    {
+        value = [_settings objectForKey:key];
+    }
+    
+    return value;
 }
 
 - (void)setSetting:(id)setting forKey:(id)key
 {
-	@synchronized (self)
-	{
-		[_settings setObject:setting forKey:key];
-	}
+    @synchronized (self)
+    {
+        [_settings setObject:setting forKey:key];
+    }
 }
 
 - (void)removeSettingForKey:(id)key
 {
-	@synchronized (self)
-	{
-		[_settings removeObjectForKey:key];
-	}
+    @synchronized (self)
+    {
+        [_settings removeObjectForKey:key];
+    }
 }
 
 - (id)addCallback:(HKSettingChangeCallback)callback forKey:(id)key
@@ -298,161 +298,161 @@ static HKSettingsController *gHKSettingsController = nil;
 
 - (void)switchToView:(NSString *)view
 {
-	id viewdef = [[_definition objectForKey:HK_SETTINGS_DEFINITION_KEY_VIEWS] objectForKey:view];
-	
-	if ( viewdef && viewdef != _view )
-	{
-		[_view release];
-		_view = [viewdef retain];
-	}
+    id viewdef = [[_definition objectForKey:HK_SETTINGS_DEFINITION_KEY_VIEWS] objectForKey:view];
+    
+    if ( viewdef && viewdef != _view )
+    {
+        [_view release];
+        _view = [viewdef retain];
+    }
 }
 
 - (NSInteger)numberOfSections
-{	
-	return [[_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS] count];
+{   
+    return [[_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS] count];
 }
 
 - (NSInteger)numberOfItemsInSection:(NSInteger)section
 {
-	NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
-	
-	if ( sections == nil || section < 0 || section >= [sections count] )
-		return 0;
-	
-	NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
-	
-	return [items count];
+    NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
+    
+    if ( sections == nil || section < 0 || section >= [sections count] )
+        return 0;
+    
+    NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
+    
+    return [items count];
 }
 
 - (NSString *)headerForSection:(NSInteger)section
 {
-	NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
-	
-	if ( sections == nil || section < 0 || section >= [sections count] )
-		return nil;
-	
-	return [NSString stringWithString:[[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_HEADER]];
+    NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
+    
+    if ( sections == nil || section < 0 || section >= [sections count] )
+        return nil;
+    
+    return [NSString stringWithString:[[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_HEADER]];
 }
 
 - (NSString *)footerForSection:(NSInteger)section
 {
-	NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
-	
-	if ( sections == nil || section < 0 || section >= [sections count] )
-		return nil;
-	
-	return [NSString stringWithString:[[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_FOOTER]];
+    NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
+    
+    if ( sections == nil || section < 0 || section >= [sections count] )
+        return nil;
+    
+    return [NSString stringWithString:[[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_FOOTER]];
 }
 
 - (NSString *)titleForItem:(NSInteger)item inSection:(NSInteger)section
 {
-	NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
-	
-	if ( sections == nil || section < 0 || section >= [sections count] )
-		return nil;
-	
-	NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
-	
-	if ( items == nil || item < 0 || item >= [items count] )
-		return nil;
-	
-	return [NSString stringWithString:[[items objectAtIndex:item] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_TITLE]];
+    NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
+    
+    if ( sections == nil || section < 0 || section >= [sections count] )
+        return nil;
+    
+    NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
+    
+    if ( items == nil || item < 0 || item >= [items count] )
+        return nil;
+    
+    return [NSString stringWithString:[[items objectAtIndex:item] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_TITLE]];
 }
 
 - (HKSettingSectionItemType)typeForItem:(NSInteger)item inSection:(NSInteger)section
 {
-	NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
-	
-	if ( sections == nil || section < 0 || section >= [sections count] )
-		return kHKSettingSectionItemTypeUnknown;
-	
-	NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
-	
-	if ( items == nil || item < 0 || item >= [items count] )
-		return kHKSettingSectionItemTypeUnknown;
-	
-	NSString *type = [[items objectAtIndex:item] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_TYPE];
-	
-	if ( type == nil )
-		return kHKSettingSectionItemTypeUnknown;
-	
-	if ( [type isEqualToString:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_TYPE_STRING_FLAG] )
-	{
-		return kHKSettingSectionItemTypeFlag;
-	}
-	else if ( [type isEqualToString:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_TYPE_STRING_CUSTOM] )
-	{
-		return kHKSettingSectionItemTypeCustom;
-	}
-	else if ( [type isEqualToString:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_TYPE_STRING_OPTION] )
-	{
-		return kHKSettingSectionItemTypeOption;
-	}
-	
-	return kHKSettingSectionItemTypeUnknown;
+    NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
+    
+    if ( sections == nil || section < 0 || section >= [sections count] )
+        return kHKSettingSectionItemTypeUnknown;
+    
+    NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
+    
+    if ( items == nil || item < 0 || item >= [items count] )
+        return kHKSettingSectionItemTypeUnknown;
+    
+    NSString *type = [[items objectAtIndex:item] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_TYPE];
+    
+    if ( type == nil )
+        return kHKSettingSectionItemTypeUnknown;
+    
+    if ( [type isEqualToString:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_TYPE_STRING_FLAG] )
+    {
+        return kHKSettingSectionItemTypeFlag;
+    }
+    else if ( [type isEqualToString:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_TYPE_STRING_CUSTOM] )
+    {
+        return kHKSettingSectionItemTypeCustom;
+    }
+    else if ( [type isEqualToString:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_TYPE_STRING_OPTION] )
+    {
+        return kHKSettingSectionItemTypeOption;
+    }
+    
+    return kHKSettingSectionItemTypeUnknown;
 }
 
 - (id)keyForItem:(NSInteger)item inSection:(NSInteger)section
 {
     NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
-	
-	if ( sections == nil || section < 0 || section >= [sections count] )
-		return nil;
-	
-	NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
-	
-	if ( items == nil || item < 0 || item >= [items count] )
-		return nil;
-		
-	return [[items objectAtIndex:item] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_KEY];
+    
+    if ( sections == nil || section < 0 || section >= [sections count] )
+        return nil;
+    
+    NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
+    
+    if ( items == nil || item < 0 || item >= [items count] )
+        return nil;
+        
+    return [[items objectAtIndex:item] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_KEY];
 }
 
 - (id)valueForItem:(NSInteger)item inSection:(NSInteger)section
 {
     NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
-	
-	if ( sections == nil || section < 0 || section >= [sections count] )
-		return nil;
-	
-	NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
-	
-	if ( items == nil || item < 0 || item >= [items count] )
-		return nil;
     
-	return [[items objectAtIndex:item] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_VALUE];
+    if ( sections == nil || section < 0 || section >= [sections count] )
+        return nil;
+    
+    NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
+    
+    if ( items == nil || item < 0 || item >= [items count] )
+        return nil;
+    
+    return [[items objectAtIndex:item] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_VALUE];
 }
 
 - (SEL)actionForItem:(NSInteger)item inSection:(NSInteger)section
 {
-	NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
-	
-	if ( sections == nil || section < 0 || section >= [sections count] )
-		return nil;
-	
-	NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
-	
-	if ( items == nil || item < 0 || item >= [items count] )
-		return nil;
-	
-	NSString *action = [[items objectAtIndex:item] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_ACTION];
-	
-	if ( action == nil )
-		return nil;
-	
-	return NSSelectorFromString( action );
+    NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
+    
+    if ( sections == nil || section < 0 || section >= [sections count] )
+        return nil;
+    
+    NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
+    
+    if ( items == nil || item < 0 || item >= [items count] )
+        return nil;
+    
+    NSString *action = [[items objectAtIndex:item] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_ACTION];
+    
+    if ( action == nil )
+        return nil;
+    
+    return NSSelectorFromString( action );
 }
 
 - (BOOL)enabledForItem:(NSInteger)item inSection:(NSInteger)section
 {
     NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
-	
-	if ( sections == nil || section < 0 || section >= [sections count] )
-		return NO;
-	
-	NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
-	
-	if ( items == nil || item < 0 || item >= [items count] )
-		return NO;
+    
+    if ( sections == nil || section < 0 || section >= [sections count] )
+        return NO;
+    
+    NSArray *items = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEMS];
+    
+    if ( items == nil || item < 0 || item >= [items count] )
+        return NO;
     
     NSArray *enabled = [[items objectAtIndex:item] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_ITEM_ENABLED];
     BOOL     flag = YES;
@@ -483,9 +483,9 @@ static HKSettingsController *gHKSettingsController = nil;
 - (BOOL)sectionIsHidden:(NSInteger)section
 {
     NSArray *sections = [_view objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTIONS];
-	
-	if ( sections == nil || section < 0 || section >= [sections count] )
-		return YES;
+    
+    if ( sections == nil || section < 0 || section >= [sections count] )
+        return YES;
     
     NSArray *hidden = [[sections objectAtIndex:section] objectForKey:HK_SETTINGS_DEFINITION_KEY_SECTION_HIDDEN];
     
@@ -521,55 +521,55 @@ static HKSettingsController *gHKSettingsController = nil;
 
 - (void)setup
 {
-	if ( _definition == nil )
-	{
-		_definition = [[NSDictionary alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"HKSettings" ofType:@"plist"]];
-	}
+    if ( _definition == nil )
+    {
+        _definition = [[NSDictionary alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"HKSettings" ofType:@"plist"]];
+    }
     
     if ( _callbacks == nil )
     {
         _callbacks = [[NSMutableDictionary alloc] init];
     }
-	
-	[self load];
-	[self loadDefaultValues];
+    
+    [self load];
+    [self loadDefaultValues];
 }
 
 - (void)load
 {
-	NSUserDefaults	*defaults = [NSUserDefaults standardUserDefaults];
-	NSData			*sdata = [defaults objectForKey:HK_USER_DEFAULTS_KEY_SETTINGS];
-	
-	if ( sdata == nil )
-	{
+    NSUserDefaults  *defaults = [NSUserDefaults standardUserDefaults];
+    NSData          *sdata = [defaults objectForKey:HK_USER_DEFAULTS_KEY_SETTINGS];
+    
+    if ( sdata == nil )
+    {
 #ifdef HK_DEBUG_SETTINGS
-		NSLog(@"HKSettingsController->Load: 'No settings found in user defaults. Creating a new settings dictionary.'");
-#endif
-		@synchronized (self)
-        {
-            _settings = [[NSMutableDictionary alloc] init];
-        }
-		
-		return;
-	}
-	
-	NSMutableDictionary	*settings = nil;
-	NSError				*error = nil;
-	
-	settings = (NSMutableDictionary *) [NSPropertyListSerialization propertyListWithData:sdata options:NSPropertyListMutableContainers format:NULL error:&error];
-	
-	if ( settings == nil )
-	{
-#ifdef HK_DEBUG_SETTINGS
-		NSLog(@"HKSettingsController->Error: '%@'", error);
+        NSLog(@"HKSettingsController->Load: 'No settings found in user defaults. Creating a new settings dictionary.'");
 #endif
         @synchronized (self)
         {
             _settings = [[NSMutableDictionary alloc] init];
         }
-	}
-	else
-	{
+        
+        return;
+    }
+    
+    NSMutableDictionary *settings = nil;
+    NSError             *error = nil;
+    
+    settings = (NSMutableDictionary *) [NSPropertyListSerialization propertyListWithData:sdata options:NSPropertyListMutableContainers format:NULL error:&error];
+    
+    if ( settings == nil )
+    {
+#ifdef HK_DEBUG_SETTINGS
+        NSLog(@"HKSettingsController->Error: '%@'", error);
+#endif
+        @synchronized (self)
+        {
+            _settings = [[NSMutableDictionary alloc] init];
+        }
+    }
+    else
+    {
         NSArray             *transformers = nil;
         NSValueTransformer  *transformer = nil;
         id                   name;
@@ -609,39 +609,39 @@ static HKSettingsController *gHKSettingsController = nil;
             [settings setObject:tvalue forKey:key];
         }
         
-		@synchronized (self)
+        @synchronized (self)
         {
             _settings = [settings retain];
         }
-	}
+    }
 }
 
 - (void)loadDefaultValues
 {
-	if ( _definition != nil )
-	{
-		id key, value;
-		
-		for ( NSDictionary *dvalue in [_definition objectForKey:HK_SETTINGS_DEFINITION_KEY_DEFAULT_VALUES] )
-		{
-			key = [dvalue objectForKey:HK_SETTINGS_DEFINITION_KEY_DEFAULT_VALUE_KEY];
-			
-			if ( key )
-			{
-				value = [self settingForKey:key];
-				
-				if ( value == nil )
-				{
-					value = [dvalue objectForKey:HK_SETTINGS_DEFINITION_KEY_DEFAULT_VALUE_VALUE];
-					
-					if ( value != nil )
-					{
-						[self setSetting:value forKey:key];
-					}
-				}
-			}
-		}
-	}
+    if ( _definition != nil )
+    {
+        id key, value;
+        
+        for ( NSDictionary *dvalue in [_definition objectForKey:HK_SETTINGS_DEFINITION_KEY_DEFAULT_VALUES] )
+        {
+            key = [dvalue objectForKey:HK_SETTINGS_DEFINITION_KEY_DEFAULT_VALUE_KEY];
+            
+            if ( key )
+            {
+                value = [self settingForKey:key];
+                
+                if ( value == nil )
+                {
+                    value = [dvalue objectForKey:HK_SETTINGS_DEFINITION_KEY_DEFAULT_VALUE_VALUE];
+                    
+                    if ( value != nil )
+                    {
+                        [self setSetting:value forKey:key];
+                    }
+                }
+            }
+        }
+    }
 }
 
 #pragma mark Observation

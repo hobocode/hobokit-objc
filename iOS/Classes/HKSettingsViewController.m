@@ -43,7 +43,7 @@
 - (void)dealloc
 {
 #ifdef HK_DEBUG_DEALLOC
-	NSLog(@"Dealloc: %@", self);
+    NSLog(@"Dealloc: %@", self);
 #endif
     [super dealloc];
 }
@@ -55,9 +55,9 @@
 
 - (void)viewDidLoad
 {
-	[super viewDidLoad];
-	
-	[self setup];
+    [super viewDidLoad];
+    
+    [self setup];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -69,16 +69,16 @@
 
 - (void)setup
 {
-	self.title = NSLocalizedString( @"Settings", @"Settings view title" );
+    self.title = NSLocalizedString( @"Settings", @"Settings view title" );
 }
 
 - (UISwitch *)createNewSettingSwitchWithInitialOn:(BOOL)initialOn enabled:(BOOL)enabled forItemAtIndexPath:(NSIndexPath *)indexPath
 {
-	UISwitch    *swtch = [[UISwitch alloc] initWithFrame:CGRectZero];
-	NSInteger   tag = (indexPath.section * 1000) + indexPath.row; 
+    UISwitch    *swtch = [[UISwitch alloc] initWithFrame:CGRectZero];
+    NSInteger   tag = (indexPath.section * 1000) + indexPath.row; 
     
-	[swtch addTarget:self action:@selector(switchValueChanged:) forControlEvents:UIControlEventValueChanged];
-	[swtch setOn:initialOn];
+    [swtch addTarget:self action:@selector(switchValueChanged:) forControlEvents:UIControlEventValueChanged];
+    [swtch setOn:initialOn];
     [swtch setEnabled:enabled];
     [swtch setTag:tag];
     
@@ -86,7 +86,7 @@
     NSLog(@"HKSettingsViewController->Created switch with tag: %d", tag);
 #endif
     
-	return [swtch autorelease];
+    return [swtch autorelease];
 }
 
 #pragma mark HKActions API
@@ -122,8 +122,8 @@
                 
             case kHKSettingSectionItemTypeCustom:
             {
-                id	target = self;
-                SEL	action = [[HKSettingsController defaultController] actionForItem:indexPath.row inSection:indexPath.section];
+                id  target = self;
+                SEL action = [[HKSettingsController defaultController] actionForItem:indexPath.row inSection:indexPath.section];
                 
                 if ( target && action )
                 {

@@ -125,7 +125,7 @@ static HKCacheManager *gHCCacheManager = nil;
 	if ( identifier == nil )
 		return nil;
 	
-#ifdef SWING_POD_DEBUG_CACHE
+#ifdef HK_DEBUG_CACHE
 	NSDate *s, *e;
 	
 	s = [NSDate date];
@@ -149,7 +149,7 @@ static HKCacheManager *gHCCacheManager = nil;
 				
 				if ( length > 0 )
 				{
-#ifdef SWING_POD_DEBUG_CACHE
+#ifdef HK_DEBUG_CACHE
 					NSLog(@"HKCacheManager->Successfully loaded cache with identifier: %@", identifier);
 #endif
 					retval = [NSData dataWithBytes:bytes length:length];
@@ -160,7 +160,7 @@ static HKCacheManager *gHCCacheManager = nil;
 		sqlite3_reset( _select );
 	});
 	
-#ifdef SWING_POD_DEBUG_CACHE
+#ifdef HK_DEBUG_CACHE
 	e = [NSDate date];
 	
 	NSLog(@"HKCacheManager->Last cache transaction (load): %f ms", [e timeIntervalSinceDate:s] * 1000.0f);
@@ -174,7 +174,7 @@ static HKCacheManager *gHCCacheManager = nil;
 	if ( identifier == nil )
 		return;
 	
-#ifdef SWING_POD_DEBUG_CACHE
+#ifdef HK_DEBUG_CACHE
 	NSDate *s, *e;
 	
 	s = [NSDate date];
@@ -191,7 +191,7 @@ static HKCacheManager *gHCCacheManager = nil;
 		
 		if ( sqlite3_step( _insert ) == SQLITE_DONE )
 		{
-#ifdef SWING_POD_DEBUG_CACHE
+#ifdef HK_DEBUG_CACHE
 			NSLog(@"HKCacheManager->Successfully saved cache with identifier: %@", identifier);
 #endif
 		}
@@ -199,7 +199,7 @@ static HKCacheManager *gHCCacheManager = nil;
 		sqlite3_reset( _insert );
 	});
 	
-#ifdef SWING_POD_DEBUG_CACHE
+#ifdef HK_DEBUG_CACHE
 	e = [NSDate date];
 	
 	NSLog(@"HKCacheManager->Last cache transaction (save): %f ms", [e timeIntervalSinceDate:s] * 1000.0f);
@@ -234,7 +234,7 @@ static HKCacheManager *gHCCacheManager = nil;
 			{
 				if ( sqlite3_open( [path UTF8String], &_database ) != SQLITE_OK )
 				{
-#ifdef SWING_POD_DEBUG_CACHE
+#ifdef HK_DEBUG_CACHE
 					NSLog(@"HKCacheManager->Error: 'Couldn't create cache database!'");
 #endif
 					abort();
@@ -244,7 +244,7 @@ static HKCacheManager *gHCCacheManager = nil;
 				
 				if ( sqlite3_prepare_v2( _database, "CREATE TABLE IF NOT EXISTS cache ( pk INTEGER PRIMARY KEY AUTOINCREMENT, identifier STRING, data BLOB )", -1, &table_stmt, NULL ) != SQLITE_OK )
 				{
-#ifdef SWING_POD_DEBUG_CACHE
+#ifdef HK_DEBUG_CACHE
 					NSLog(@"HKCacheManager->Error: 'Couldn't create database cache table statement!'");
 #endif
 					abort();
@@ -252,7 +252,7 @@ static HKCacheManager *gHCCacheManager = nil;
 				
 				if ( sqlite3_step( table_stmt ) != SQLITE_DONE )
 				{
-#ifdef SWING_POD_DEBUG_CACHE
+#ifdef HK_DEBUG_CACHE
 					NSLog(@"HKCacheManager->Error: 'Couldn't execute database cache table statement!'");
 #endif
 					abort();
@@ -262,7 +262,7 @@ static HKCacheManager *gHCCacheManager = nil;
 				
 				if ( sqlite3_prepare_v2( _database, "CREATE INDEX IF NOT EXISTS identifier_index on cache ( identifier )", -1, &table_stmt, NULL ) != SQLITE_OK )
 				{
-#ifdef SWING_POD_DEBUG_CACHE
+#ifdef HK_DEBUG_CACHE
 					NSLog(@"HKCacheManager->Error: 'Couldn't create database cache identifier index statement!'");
 #endif
 					abort();
@@ -270,7 +270,7 @@ static HKCacheManager *gHCCacheManager = nil;
 				
 				if ( sqlite3_step( table_stmt ) != SQLITE_DONE )
 				{
-#ifdef SWING_POD_DEBUG_CACHE
+#ifdef HK_DEBUG_CACHE
 					NSLog(@"HKCacheManager->Error: 'Couldn't execute database cache identifier index statement!'");
 #endif
 					abort();
@@ -286,7 +286,7 @@ static HKCacheManager *gHCCacheManager = nil;
 			
 			if ( sqlite3_prepare_v2( _database, "SELECT data from cache WHERE identifier = ?", -1, &_select, NULL ) != SQLITE_OK )
 			{
-#ifdef SWING_POD_DEBUG_CACHE
+#ifdef HK_DEBUG_CACHE
 				NSLog(@"HKCacheManager->Error: 'Couldn't create database data select statement!'");
 #endif
 				abort();
@@ -299,7 +299,7 @@ static HKCacheManager *gHCCacheManager = nil;
 			
 			if ( sqlite3_prepare_v2( _database, "INSERT INTO cache ( identifier, data ) VALUES ( ?, ? )", -1, &_insert, NULL ) != SQLITE_OK )
 			{
-#ifdef SWING_POD_DEBUG_CACHE
+#ifdef HK_DEBUG_CACHE
 				NSLog(@"HKCacheManager->Error: 'Couldn't create database data insert statement!'");
 #endif
 				abort();

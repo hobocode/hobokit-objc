@@ -24,6 +24,10 @@
 
 #import <Foundation/Foundation.h>
 
+#ifdef HK_DEBUG
+# define HK_DEBUG_CACHE
+#endif
+
 #define HK_CACHE_MANAGER_GCD_QUEUE_LABEL     "se.hobocode.gcd.queue.cachemanager"
 
 @interface HKCacheManager : NSObject

@@ -22,53 +22,16 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import "NSTreeController+HKAdditions.h"
+#import <UIKit/UIKit.h>
 
-@implementation NSTreeController (NSTreeController_HKAdditions)
+#ifdef HK_DEBUG
+# define HK_DEBUG_SETTINGS_VIEW_EVENTS
+#endif
 
-- (NSArray *)rootNodes
+#define HK_TABLE_VIEW_CELL_IDENTIFIER_SETTINGS      @"HKTableViewCellSettings"
+
+@interface HKSettingsViewController : UITableViewController
 {
-    return [[self arrangedObjects] childNodes];
-}
-
-- (NSArray *)flattenedNodes
-{
-    NSMutableArray  *retval = [NSMutableArray array];
-    NSTreeNode      *node;
-    
-    for ( node in [self rootNodes] )
-    {
-        [retval addObject:node];
-        
-        if ( [[node childNodes] count] > 0 )
-        {
-            [retval addObjectsFromArray:[node childNodes]];
-        }
-    }
-    
-    return [NSArray arrayWithArray:retval]; 
-}
-
-- (NSTreeNode *)treeNodeForObject:(id)object
-{   
-    NSTreeNode *retval = nil;
-    NSTreeNode *node;
-    
-    for ( node in [self flattenedNodes] )
-    {
-        if ( [node representedObject] == object )
-        {
-            retval = node;
-            break;
-        }
-    }
-    
-    return retval;
-}
-
-- (NSIndexPath *)indexPathToObject:(id)object;
-{
-    return [[self treeNodeForObject:object] indexPath];
 }
 
 @end

@@ -32,4 +32,8 @@
 
 #define HK_ERROR_DOMAIN                         @"com.hobocode.error"
 
+#define HK_RGBTF(rgb)                           (float)((rgb)) / 255.0)
+
+#define HK_COLOR_IPHONE_BLUE                    [UIColor colorWithRed:HK_RGBTF(56) green:HK_RGBTF(84) blue:HK_RGBTF(135) alpha:1.0]
+
 #endif

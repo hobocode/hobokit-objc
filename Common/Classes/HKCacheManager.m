@@ -87,9 +87,10 @@ static HKCacheManager *gHCCacheManager = nil;
 
 - (void)dealloc
 {
-#ifdef SWING_POD_DEBUG_DEALLOC
+#ifdef HK_DEBUG_DEALLOC
 	NSLog(@"Dealloc: %@", self);
 #endif
+
 	if ( _database )
 	{
 		sqlite3_close( _database ); _database = nil;

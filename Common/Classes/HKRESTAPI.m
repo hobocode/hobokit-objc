@@ -22,24 +22,24 @@
 //	OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import "HKWebAPI.h"
+#import "HKRESTAPI.h"
 
 #import "JSONKit.h"
 
-static HKWebAPI *gHKWebAPI = nil;
+static HKRESTAPI *gHKRESTAPI = nil;
 
-@interface HKWebAPI (HKPrivate)
+@interface HKRESTAPI (HKPrivate)
 
 - (void)setup;
 
-- (void)performRequest:(NSURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKWebAPIHandler)handler;
+- (void)performRequest:(NSURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
 - (NSURLRequest *)requestForMethod:(NSString *)method HTTPMethod:(NSString *)httpMethod parameters:(NSDictionary *)parameters;
 - (NSString *)URLVariablesUsingParameters:(NSDictionary *)parameters;
 - (NSData *)postDataUsingParameters:(NSDictionary *)parameters;
 
 @end
 
-@implementation HKWebAPI
+@implementation HKRESTAPI
 
 #pragma mark HKSingleton
 
@@ -47,11 +47,11 @@ static HKWebAPI *gHKWebAPI = nil;
 {
     @synchronized(self)
 	{
-        if ( gHKWebAPI == nil )
+        if ( gHKRESTAPI == nil )
 		{
-            gHKWebAPI = [super allocWithZone:zone];
+            gHKRESTAPI = [super allocWithZone:zone];
 			
-            return gHKWebAPI;
+            return gHKRESTAPI;
         }
     }
 	
@@ -94,9 +94,10 @@ static HKWebAPI *gHKWebAPI = nil;
 
 - (void)dealloc
 {
-#ifdef SWING_POD_DEBUG_DEALLOC
+#ifdef HK_DEBUG_DEALLOC
 	NSLog(@"Dealloc: %@", self);
 #endif
+
 	dispatch_release( _requests ); _requests = nil;
 	
 	[super dealloc];
@@ -106,25 +107,25 @@ static HKWebAPI *gHKWebAPI = nil;
 
 @synthesize APIBaseURL = _APIBaseURL, APIVersion = _APIVersion;
 
-+ (HKWebAPI *)defaultAPI
++ (HKRESTAPI *)defaultAPI
 {
     @synchronized ( self )
 	{
-        if ( gHKWebAPI == nil )
+        if ( gHKRESTAPI == nil )
 		{
             [[self alloc] init];
         }
     }
 	
-    return gHKWebAPI;
+    return gHKRESTAPI;
 }
 
-- (void)GETMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKWebAPIHandler)handler
+- (void)GETMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler
 {
 	[self performRequest:[self requestForMethod:method HTTPMethod:@"GET" parameters:parameters] synchronously:synchronously completionHandler:handler];
 }
 
-- (void)POSTMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKWebAPIHandler)handler
+- (void)POSTMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler
 {
 	[self performRequest:[self requestForMethod:method HTTPMethod:@"POST" parameters:parameters] synchronously:synchronously completionHandler:handler];
 }
@@ -139,7 +140,7 @@ static HKWebAPI *gHKWebAPI = nil;
 	}
 }
 
-- (void)performRequest:(NSURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKWebAPIHandler)handler
+- (void)performRequest:(NSURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler
 {
 	id rhandler = ^{
 		id					 json = nil;
@@ -165,7 +166,7 @@ static HKWebAPI *gHKWebAPI = nil;
 		}
 		
 #ifdef HK_DEBUG_WEB_API
-        NSLog(@"HKWebAPI->Requesting URL: %@", [request URL]);
+        NSLog(@"HKRESTAPI->Requesting URL: %@", [request URL]);
 #endif
         
 		result = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
@@ -187,7 +188,7 @@ static HKWebAPI *gHKWebAPI = nil;
 		}
 		
 #ifdef HK_DEBUG_WEB_API
-		NSLog(@"\r\n########## HKWebAPI DATA ##########\r\n%@\r\n########## ----------------- ##########\r\n", [[[NSString alloc] initWithData:result encoding:NSUTF8StringEncoding] autorelease]);
+		NSLog(@"\r\n########## HKRESTAPI DATA ##########\r\n%@\r\n########## ----------------- ##########\r\n", [[[NSString alloc] initWithData:result encoding:NSUTF8StringEncoding] autorelease]);
 #endif
 		
 		if ( [response statusCode] != 200 )

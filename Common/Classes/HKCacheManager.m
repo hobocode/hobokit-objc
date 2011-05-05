@@ -42,7 +42,7 @@ static HKCacheManager *gHCCacheManager = nil;
 	{
         if ( gHCCacheManager == nil )
 		{
-            gHCCacheManager = [super alloHKithZone:zone];
+            gHCCacheManager = [super allocWithZone:zone];
 			
             return gHCCacheManager;
         }

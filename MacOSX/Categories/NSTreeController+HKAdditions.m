@@ -12,47 +12,47 @@
 
 - (NSArray *)rootNodes
 {
-	return [[self arrangedObjects] childNodes];
+    return [[self arrangedObjects] childNodes];
 }
 
 - (NSArray *)flattenedNodes
 {
-	NSMutableArray  *retval = [NSMutableArray array];
+    NSMutableArray  *retval = [NSMutableArray array];
     NSTreeNode      *node;
     
-	for ( node in [self rootNodes] )
+    for ( node in [self rootNodes] )
     {
-		[retval addObject:node];
+        [retval addObject:node];
         
-		if ( [[node childNodes] count] > 0 )
+        if ( [[node childNodes] count] > 0 )
         {
-			[retval addObjectsFromArray:[node childNodes]];
+            [retval addObjectsFromArray:[node childNodes]];
         }
-	}
+    }
     
-	return [NSArray arrayWithArray:retval];	
+    return [NSArray arrayWithArray:retval]; 
 }
 
 - (NSTreeNode *)treeNodeForObject:(id)object
-{	
-	NSTreeNode *retval = nil;
+{   
+    NSTreeNode *retval = nil;
     NSTreeNode *node;
     
-	for ( node in [self flattenedNodes] )
+    for ( node in [self flattenedNodes] )
     {
-		if ( [node representedObject] == object )
+        if ( [node representedObject] == object )
         {
-			retval = node;
-			break;
-		}
-	}
+            retval = node;
+            break;
+        }
+    }
     
-	return retval;
+    return retval;
 }
 
 - (NSIndexPath *)indexPathToObject:(id)object;
 {
-	return [[self treeNodeForObject:object] indexPath];
+    return [[self treeNodeForObject:object] indexPath];
 }
 
 @end

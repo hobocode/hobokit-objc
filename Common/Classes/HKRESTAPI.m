@@ -286,7 +286,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
             if ( data != nil )
             {
                 [request setHTTPBody:data];
-                [request setValue:"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+                [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
             }
         }
     }

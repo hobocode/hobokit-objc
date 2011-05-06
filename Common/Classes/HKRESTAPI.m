@@ -35,7 +35,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
 - (void)performRequest:(NSURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
 - (NSURLRequest *)requestForMethod:(NSString *)method HTTPMethod:(NSString *)httpMethod parameters:(NSDictionary *)parameters;
 - (NSString *)URLVariablesUsingParameters:(NSDictionary *)parameters;
-- (NSData *)postDataUsingParameters:(NSDictionary *)parameters;
+- (NSData *)formDataUsingParameters:(NSDictionary *)parameters;
 
 @end
 
@@ -277,15 +277,16 @@ static HKRESTAPI *gHKRESTAPI = nil;
             }
         }
     }
-    else if ( [httpMethod isEqualToString:@"POST"] )
+    else if ( [httpMethod isEqualToString:@"POST"] || [httpMethod isEqualToString:@"PUT"] )
     {       
         if ( parameters != nil )
         {
-            data = [self postDataUsingParameters:parameters];
+            data = [self formDataUsingParameters:parameters];
             
             if ( data != nil )
             {
                 [request setHTTPBody:data];
+                [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
             }
         }
     }
@@ -335,7 +336,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
     return [NSString stringWithString:result];
 }
 
-- (NSData *)postDataUsingParameters:(NSDictionary *)parameters
+- (NSData *)formDataUsingParameters:(NSDictionary *)parameters
 {
     return [[self URLVariablesUsingParameters:parameters] dataUsingEncoding:NSUTF8StringEncoding];
 }

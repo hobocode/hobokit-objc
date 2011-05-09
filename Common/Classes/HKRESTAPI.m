@@ -138,7 +138,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
 {
     if ( _requests == nil )
     {
-        _requests = dispatch_queue_create( "com.hobocode.gcd.webapi", NULL );
+        _requests = dispatch_queue_create( "se.hobocode.gcd.restapi", NULL );
     }
 }
 

@@ -24,6 +24,8 @@
 
 #import "HKCacheManager.h"
 
+#import "NSFileManager+HKApplicationSupport.h"
+
 static HKCacheManager *gHCCacheManager = nil;
 
 @interface HKCacheManager (HKPrivate)

@@ -24,6 +24,8 @@
 
 #import <Foundation/Foundation.h>
 
+#import <sqlite3.h>
+
 #ifdef HK_DEBUG
 # define HK_DEBUG_CACHE
 #endif

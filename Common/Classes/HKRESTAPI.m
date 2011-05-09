@@ -291,6 +291,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
         }
     }
     
+    [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
     [request setURL:[NSURL URLWithString:ustring]];
     
     return request;

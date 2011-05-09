@@ -24,6 +24,8 @@
 
 #import "HKDataStore.h"
 
+#import "NSFileManager+HKApplicationSupport.h"
+
 static HKDataStore *gHKDataStore = nil;
 
 @interface HKDataStore (HKPrivate)
@@ -202,7 +204,7 @@ static HKDataStore *gHKDataStore = nil;
     if ( _coordinator == nil )
     {
         NSFileManager   *fm = [NSFileManager defaultManager];
-        NSString        *dir = [self applicationSupportDirectory];
+        NSString        *dir = [NSFileManager applicationSupportDirectory];
         NSURL           *url = [NSURL fileURLWithPath:[dir stringByAppendingPathComponent:@"Data.db"]];
         NSError         *error = nil;
         
@@ -234,15 +236,6 @@ static HKDataStore *gHKDataStore = nil;
         
         [_context setPersistentStoreCoordinator:_coordinator];
     }
-}
-
-- (NSString *)applicationSupportDirectory
-{
-    NSArray     *paths = NSSearchPathForDirectoriesInDomains( NSDocumentDirectory, NSUserDomainMask, YES );
-    NSString    *base = ( ([paths count] > 0) ? [paths objectAtIndex:0] : NSTemporaryDirectory() );
-    NSString    *appname = [[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleNameKey];
-    
-    return [base stringByAppendingPathComponent:appname];
 }
 
 @end

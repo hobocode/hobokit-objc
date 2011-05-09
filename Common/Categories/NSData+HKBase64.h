@@ -22,38 +22,9 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <Foundation/Foundation.h>
+@interface NSData (NSData_HKBase64)
 
-#ifdef HK_DEBUG
-# define HK_DEBUG_REST_API
-#endif
-
-#define HK_ERROR_CODE_WEB_API_ERROR     3001
-
-typedef void (^HKRESTAPIHandler)( id json, NSError *error );
-
-@interface HKRESTAPI : NSObject
-{
-@private
-    NSString            *_APIBaseURL;
-    NSString            *_APIVersion;
-    NSString            *_APIUsername;
-    NSString            *_APIPassword;
-    dispatch_queue_t     _requests;
-}
-
-@property (retain) NSString *APIBaseURL;
-@property (retain) NSString *APIVersion;
-@property (retain) NSString *APIUsername;
-@property (retain) NSString *APIPassword;
-
-@end
-
-@interface HKRESTAPI (HKPublic)
-
-+ (HKRESTAPI *)defaultAPI;
-
-- (void)GETMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
-- (void)POSTMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
+- (NSString *)base64Encoding;
+- (NSString *)base64EncodingWithLineLength:(NSUInteger)lineLength;
 
 @end

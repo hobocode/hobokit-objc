@@ -26,6 +26,8 @@
 
 #import "JSONKit.h"
 
+#import "NSData+HKBase64.h"
+
 static HKRESTAPI *gHKRESTAPI = nil;
 
 @interface HKRESTAPI (HKPrivate)
@@ -105,7 +107,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
 
 #pragma mark HKPublic API
 
-@synthesize APIBaseURL = _APIBaseURL, APIVersion = _APIVersion;
+@synthesize APIBaseURL = _APIBaseURL, APIVersion = _APIVersion, APIUsername = _APIUsername, APIPassword = _APIPassword;
 
 + (HKRESTAPI *)defaultAPI
 {
@@ -165,7 +167,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
             return;
         }
         
-#ifdef HK_DEBUG_WEB_API
+#ifdef HK_DEBUG_REST_API
         NSLog(@"HKRESTAPI->Requesting URL: %@", [request URL]);
 #endif
         
@@ -187,7 +189,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
             return;
         }
         
-#ifdef HK_DEBUG_WEB_API
+#ifdef HK_DEBUG_REST_API
         NSLog(@"\r\n########## HKRESTAPI DATA ##########\r\n%@\r\n########## ----------------- ##########\r\n", [[[NSString alloc] initWithData:result encoding:NSUTF8StringEncoding] autorelease]);
 #endif
         
@@ -264,6 +266,15 @@ static HKRESTAPI *gHKRESTAPI = nil;
     [request setCachePolicy:NSURLRequestUseProtocolCachePolicy];
     [request setTimeoutInterval:60.0];
     [request setHTTPMethod:httpMethod];
+    
+    if ( self.APIUsername && self.APIPassword )
+    {
+        NSString	*astring = [NSString stringWithFormat:@"%@:%@", self.APIUsername, self.APIPassword];
+        NSData		*adata = [astring dataUsingEncoding:NSASCIIStringEncoding];
+        NSString	*avalue = [NSString stringWithFormat:@"Basic %@", [adata base64EncodingWithLineLength:80]];
+        
+        [request setValue:avalue forHTTPHeaderField:@"Authorization"];
+    }
     
     if ( [httpMethod isEqualToString:@"GET"] )
     {

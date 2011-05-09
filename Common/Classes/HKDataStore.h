@@ -32,6 +32,8 @@ typedef void (^HKDataStoreHandler)( NSManagedObjectContext *context );
     NSManagedObjectModel            *_model;
     NSManagedObjectContext          *_context;
     NSPersistentStoreCoordinator    *_coordinator;
+    NSMutableSet                    *_bundles;
+    BOOL                             _setup;
 }
 
 @property (readonly) NSManagedObjectContext *context;
@@ -41,6 +43,8 @@ typedef void (^HKDataStoreHandler)( NSManagedObjectContext *context );
 @interface HKDataStore (HKPublic)
 
 + (HKDataStore *)defaultStore;
+
+- (void)addModelBundle:(NSBundle *)bundle;
 
 - (void)synchronizedWithContext:(HKDataStoreHandler)handler;
 - (void)asynchronizedWithContext:(HKDataStoreHandler)handler;

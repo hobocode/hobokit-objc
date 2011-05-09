@@ -83,7 +83,6 @@ static HKDataStore *gHKDataStore = nil;
 {
     if ( self = [super init] )
     {
-        [self setup];
     }
     
     return self;
@@ -97,6 +96,7 @@ static HKDataStore *gHKDataStore = nil;
     [_model release]; _model = nil;
     [_context release]; _context = nil;
     [_coordinator release]; _coordinator = nil;
+    [_bundles release]; _bundles = nil;
     [super dealloc];
 }
 
@@ -117,8 +117,26 @@ static HKDataStore *gHKDataStore = nil;
     return gHKDataStore;
 }
 
+- (void)addModelBundle:(NSBundle *)bundle
+{
+    @synchronized (self)
+    {
+        if ( _bundles == nil )
+        {
+            _bundles = [[NSMutableSet alloc] init];
+        }
+        
+        [_bundles addObject:bundle];
+    }
+}
+
 - (void)synchronizedWithContext:(HKDataStoreHandler)handler
 {
+    if ( !_setup )
+    {
+        [self setup];
+    }
+    
     dispatch_queue_t main = dispatch_get_main_queue();
     dispatch_queue_t current = dispatch_get_current_queue();
     
@@ -136,6 +154,11 @@ static HKDataStore *gHKDataStore = nil;
 
 - (void)asynchronizedWithContext:(HKDataStoreHandler)handler
 {
+    if ( !_setup )
+    {
+        [self setup];
+    }
+    
     dispatch_async( dispatch_get_main_queue(), ^{
         handler( _context );
     });
@@ -143,6 +166,11 @@ static HKDataStore *gHKDataStore = nil;
 
 - (void)synchronizedAndSaveWithContext:(HKDataStoreHandler)handler
 {
+    if ( !_setup )
+    {
+        [self setup];
+    }
+    
     dispatch_queue_t main = dispatch_get_main_queue();
     dispatch_queue_t current = dispatch_get_current_queue();
     
@@ -178,6 +206,11 @@ static HKDataStore *gHKDataStore = nil;
 
 - (void)asynchronizedAndSaveWithContext:(HKDataStoreHandler)handler
 {
+    if ( !_setup )
+    {
+        [self setup];
+    }
+    
     dispatch_async( dispatch_get_main_queue(), ^{
         NSError *error = nil;
         
@@ -198,7 +231,7 @@ static HKDataStore *gHKDataStore = nil;
 {
     if ( _model == nil )
     {
-        _model = [[NSManagedObjectModel mergedModelFromBundles:nil] retain];
+        _model = [[NSManagedObjectModel mergedModelFromBundles:[_bundles allObjects]] retain];
     }
     
     if ( _coordinator == nil )
@@ -236,6 +269,8 @@ static HKDataStore *gHKDataStore = nil;
         
         [_context setPersistentStoreCoordinator:_coordinator];
     }
+    
+    _setup = YES;
 }
 
 @end

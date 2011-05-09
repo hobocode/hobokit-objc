@@ -64,9 +64,6 @@
 
 - (void)dealloc
 {
-#ifdef HK_CROSSWORD_DEBUG_DEALLOC
-    NSLog(@"Dealloc: %@", self);
-#endif
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
     [_model release]; _model = nil;
@@ -255,7 +252,7 @@
     {
         [self.parentViewController dismissModalViewControllerAnimated:YES];
     
-        [[NSNotificationCenter defaultCenter] postNotificationName:HK_NOTIFICATION_FORM_DONE_EDITING object:self];
+        [[NSNotificationCenter defaultCenter] postNotificationName:HK_FORM_NOTIFICATION_DONE_EDITING object:self];
     }
 }
 
@@ -263,7 +260,7 @@
 {
     [self.parentViewController dismissModalViewControllerAnimated:YES];
     
-    [[NSNotificationCenter defaultCenter] postNotificationName:HK_NOTIFICATION_FORM_CANCELED_EDITING object:self];
+    [[NSNotificationCenter defaultCenter] postNotificationName:HK_FORM_NOTIFICATION_CANCELED_EDITING object:self];
 }
 
 #pragma mark Notifications
@@ -289,18 +286,14 @@
 #pragma mark UITextFieldDelegate Methods
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField
-{
-    NSLog(@"textFieldDidBeginEditing: %@", textField);
-    
+{    
     self.currentTextField = textField;
     
     [self ensureTableViewCellVisible:[self cellWithTextField:self.currentTextField]];
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField
-{
-    NSLog(@"textFieldDidEndEditing: %@", textField);
-    
+{    
     [self updateModel];
 }
 

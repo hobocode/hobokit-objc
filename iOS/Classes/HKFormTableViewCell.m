@@ -71,9 +71,6 @@
 
 - (void)dealloc
 {
-#ifdef HK_DEBUG_DEALLOC
-	NSLog(@"Dealloc: %@", self);
-#endif
 	[_formLabel release]; _formLabel = nil;
 	[_formField release]; _formField = nil;
 	[_formSeparator release]; _formSeparator = nil;

@@ -24,21 +24,21 @@
 
 #import <UIKit/UIKit.h>
 
-#define HK_FORM_TVC_IDENTIFIER								@"HKFormTableViewCellIdentifier"
+#define HK_FORM_TVC_IDENTIFIER                              @"HKFormTableViewCellIdentifier"
 
-#define HK_FORM_NOTIFICATION_DONE_EDITING					@"HKFormNotificationDoneEditing"
-#define HK_FORM_NOTIFICATION_CANCELED_EDITING				@"HKFormNotificationCanceledEditing"
+#define HK_FORM_NOTIFICATION_DONE_EDITING                   @"HKFormNotificationDoneEditing"
+#define HK_FORM_NOTIFICATION_CANCELED_EDITING               @"HKFormNotificationCanceledEditing"
 
-#define HK_FORM_TAG_OFFSET						            300
+#define HK_FORM_TAG_OFFSET                                  300
 
 @interface HKFormController : UIViewController <UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIScrollViewDelegate>
 {
  @private
-	id				_model;
-	NSDictionary	*_definition;
-	UITableView		*_tableView;
-	UITextField		*_currentTextField;
-	CGRect			_currentKeyboardFrame;
+    id              _model;
+    NSDictionary    *_definition;
+    UITableView     *_tableView;
+    UITextField     *_currentTextField;
+    CGRect          _currentKeyboardFrame;
 }
 
 @property (retain) id model;

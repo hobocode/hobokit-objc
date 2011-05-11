@@ -244,7 +244,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
             return;
         }
 
-        BOOL returnsResult = ( statusCode == 202 || statusCode == 201 || statusCode == 200 ); // FIXME: API returns 200 sometimes, why??
+        BOOL returnsResult = ( statusCode == 200 || statusCode == 201 );
 
         if ( returnsResult )
         {

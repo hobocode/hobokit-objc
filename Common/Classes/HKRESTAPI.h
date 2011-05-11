@@ -30,7 +30,7 @@
 
 #define HK_ERROR_CODE_WEB_API_ERROR     3001
 
-typedef void (^HKRESTAPIHandler)( id json, NSError *error );
+typedef void (^HKRESTAPIHandler)( id json, NSError *error, NSInteger statusCode );
 
 @interface HKRESTAPI : NSObject
 {
@@ -52,6 +52,9 @@ typedef void (^HKRESTAPIHandler)( id json, NSError *error );
 @interface HKRESTAPI (HKPublic)
 
 + (HKRESTAPI *)defaultAPI;
+
+
+- (void)POSTMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
 
 - (void)GETMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
 - (void)POSTMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;

@@ -52,11 +52,11 @@ static HKRESTAPI *gHKRESTAPI = nil;
         if ( gHKRESTAPI == nil )
         {
             gHKRESTAPI = [super allocWithZone:zone];
-            
+
             return gHKRESTAPI;
         }
     }
-    
+
     return nil;
 }
 
@@ -90,7 +90,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
     {
         [self setup];
     }
-    
+
     return self;
 }
 
@@ -101,7 +101,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
 #endif
 
     dispatch_release( _requests ); _requests = nil;
-    
+
     [super dealloc];
 }
 
@@ -118,7 +118,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
             [[self alloc] init];
         }
     }
-    
+
     return gHKRESTAPI;
 }
 
@@ -163,6 +163,17 @@ static HKRESTAPI *gHKRESTAPI = nil;
     [self performRequest:[self requestForMethod:method HTTPMethod:@"POST" HTTPBody:body contentType:contentType] synchronously:synchronously completionHandler:handler];
 }
 
+- (void)PUTMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler
+{
+    [self performRequest:[self requestForMethod:method HTTPMethod:@"PUT" HTTPBody:body contentType:contentType] synchronously:synchronously completionHandler:handler];
+}
+
+- (void)DELETEMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler
+{
+    [self performRequest:[self requestForMethod:method HTTPMethod:@"DELETE" HTTPBody:body contentType:contentType] synchronously:synchronously completionHandler:handler];
+}
+
+
 #pragma mark HKPrivate API
 
 - (void)setup
@@ -182,7 +193,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
         NSHTTPURLResponse   *response = nil;
         JSONDecoder         *decoder = nil;
         NSInteger            statusCode = 0;
-        
+
         if ( request == nil )
         {
             if ( synchronously )
@@ -195,16 +206,16 @@ static HKRESTAPI *gHKRESTAPI = nil;
                     handler( nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil], statusCode );
                 } );
             }
-            
+
             return;
         }
-        
+
 #ifdef HK_DEBUG_REST_API
         NSLog(@"HKRESTAPI->Requesting URL: %@", [request URL]);
 #endif
-        
+
         result = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-        
+
         if ( result == nil )
         {
             if ( synchronously )
@@ -217,10 +228,10 @@ static HKRESTAPI *gHKRESTAPI = nil;
                     handler( nil, error, statusCode );
                 } );
             }
-            
+
             return;
         }
-        
+
 #ifdef HK_DEBUG_REST_API
         NSLog(@"\r\n########## HKRESTAPI DATA ##########\r\n%@\r\n########## ----------------- ##########\r\n", [[[NSString alloc] initWithData:result encoding:NSUTF8StringEncoding] autorelease]);
 #endif
@@ -229,7 +240,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
         if ( statusCode < 200 && statusCode >= 300 )
         {
             error = [NSError errorWithDomain:HK_ERROR_DOMAIN code:HK_ERROR_CODE_WEB_API_ERROR userInfo:nil];
-            
+
             if ( synchronously )
             {
                 handler( nil, error, statusCode );
@@ -240,18 +251,21 @@ static HKRESTAPI *gHKRESTAPI = nil;
                     handler( nil, error, statusCode );
                 } );
             }
-            
+
             return;
         }
 
-        BOOL returnsResult = ( statusCode == 200 || statusCode == 201 );
+        BOOL returnsResult = ( statusCode == 200 ||
+                               statusCode == 201 ||
+                               ( statusCode == 202 && [[request HTTPMethod] isEqualToString:@"PUT"] )
+                             );
 
         if ( returnsResult )
         {
             decoder = [[JSONDecoder alloc] initWithParseOptions:JKParseOptionNone];
-        
+
             json = [decoder objectWithData:result error:&error];
-        
+
             [decoder release];
         }
 
@@ -267,10 +281,10 @@ static HKRESTAPI *gHKRESTAPI = nil;
                     handler( nil, returnsResult ? error : nil, statusCode );
                 } );
             }
-            
+
             return;
         }
-        
+
         if ( synchronously )
         {
             handler( json, nil, statusCode );
@@ -282,7 +296,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
             } );
         }
     };
-    
+
     if ( synchronously )
     {
         dispatch_sync( _requests, rhandler );
@@ -296,18 +310,18 @@ static HKRESTAPI *gHKRESTAPI = nil;
 - (NSURLRequest *)requestForMethod:(NSString *)method HTTPMethod:(NSString *)httpMethod HTTPBody:(NSData *)body contentType:(NSString *)contentType
 {
     NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
-    NSString            *mstring = [NSString stringWithFormat:@"%@/%@/%@", self.APIBaseURL, self.APIVersion, method];   
+    NSString            *mstring = [NSString stringWithFormat:@"%@/%@/%@", self.APIBaseURL, self.APIVersion, method];
 
     [request setCachePolicy:NSURLRequestUseProtocolCachePolicy];
     [request setTimeoutInterval:60.0];
     [request setHTTPMethod:httpMethod];
-    
+
     if ( self.APIUsername && self.APIPassword )
     {
         NSString	*astring = [NSString stringWithFormat:@"%@:%@", self.APIUsername, self.APIPassword];
         NSData		*adata = [astring dataUsingEncoding:NSASCIIStringEncoding];
         NSString	*avalue = [NSString stringWithFormat:@"Basic %@", [adata base64EncodingWithLineLength:80]];
-        
+
         [request setValue:avalue forHTTPHeaderField:@"Authorization"];
     }
 
@@ -334,24 +348,24 @@ static HKRESTAPI *gHKRESTAPI = nil;
     NSString        *key = nil;
     NSUInteger      i, c;
     id              value;
-    
+
     for ( i = 0, c = [keys count] ; i < c ; i++ )
     {
         key = [keys objectAtIndex:i];
         value = [parameters objectForKey:key];
-        
+
         if ( [value isKindOfClass:[NSString class]] )
         {
             NSString *string = (NSString *) value;
-            
+
             [result appendFormat:@"%@%@=%@", (i == 0 ? @"" : @"&"), key, [string stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
         }
         else if ( [value isKindOfClass:[NSDate class]] )
         {
             NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-            
+
             [formatter setDateFormat:@"yyyyMMddHHmmss"];
-            
+
             [result appendFormat:@"%@%@=%@", (i == 0 ? @"" : @"&"), key, [[formatter stringFromDate:value] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
             [formatter release];
         }
@@ -363,7 +377,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
         }
 
     }
-    
+
     return [NSString stringWithString:result];
 }
 

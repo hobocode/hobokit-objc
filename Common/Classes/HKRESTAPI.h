@@ -39,6 +39,7 @@ typedef void (^HKRESTAPIHandler)( id json, NSError *error, NSInteger statusCode 
     NSString            *_APIVersion;
     NSString            *_APIUsername;
     NSString            *_APIPassword;
+    NSMutableDictionary *_HTTPHeaders;
     dispatch_queue_t     _requests;
 }
 
@@ -46,6 +47,8 @@ typedef void (^HKRESTAPIHandler)( id json, NSError *error, NSInteger statusCode 
 @property (retain) NSString *APIVersion;
 @property (retain) NSString *APIUsername;
 @property (retain) NSString *APIPassword;
+@property (retain) NSMutableDictionary *HTTPHeaders;
+
 
 @end
 
@@ -60,5 +63,8 @@ typedef void (^HKRESTAPIHandler)( id json, NSError *error, NSInteger statusCode 
 
 - (void)GETMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
 - (void)POSTMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
+
+- (void)setHTTPHeader:(NSString *)value forKey:(NSString *)key;
+- (void)removeHTTPHeaderForKey:(NSString *)key;
 
 @end

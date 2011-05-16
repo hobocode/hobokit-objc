@@ -101,6 +101,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
 #endif
 
     dispatch_release( _requests ); _requests = nil;
+    [_HTTPHeaders release];
 
     [super dealloc];
 }
@@ -108,6 +109,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
 #pragma mark HKPublic API
 
 @synthesize APIBaseURL = _APIBaseURL, APIVersion = _APIVersion, APIUsername = _APIUsername, APIPassword = _APIPassword;
+@synthesize HTTPHeaders = _HTTPHeaders;
 
 + (HKRESTAPI *)defaultAPI
 {
@@ -173,6 +175,15 @@ static HKRESTAPI *gHKRESTAPI = nil;
     [self performRequest:[self requestForMethod:method HTTPMethod:@"DELETE" HTTPBody:body contentType:contentType] synchronously:synchronously completionHandler:handler];
 }
 
+- (void)setHTTPHeader:(NSString *)value forKey:(NSString *)key
+{
+    [self.HTTPHeaders setObject:value forKey:key];
+}
+
+- (void)removeHTTPHeaderForKey:(NSString *)key
+{
+    [self.HTTPHeaders removeObjectForKey:key];
+}
 
 #pragma mark HKPrivate API
 
@@ -181,6 +192,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
     if ( _requests == nil )
     {
         _requests = dispatch_queue_create( "se.hobocode.gcd.restapi", NULL );
+        self.HTTPHeaders = [[[NSMutableDictionary alloc] init] autorelease];
     }
 }
 
@@ -216,6 +228,8 @@ static HKRESTAPI *gHKRESTAPI = nil;
 
         result = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
 
+        statusCode = [response statusCode];
+
         if ( result == nil )
         {
             if ( synchronously )
@@ -236,7 +250,6 @@ static HKRESTAPI *gHKRESTAPI = nil;
         NSLog(@"\r\n########## HKRESTAPI DATA ##########\r\n%@\r\n########## ----------------- ##########\r\n", [[[NSString alloc] initWithData:result encoding:NSUTF8StringEncoding] autorelease]);
 #endif
 
-        statusCode = [response statusCode];
         if ( statusCode < 200 && statusCode >= 300 )
         {
             error = [NSError errorWithDomain:HK_ERROR_DOMAIN code:HK_ERROR_CODE_WEB_API_ERROR userInfo:nil];
@@ -325,10 +338,17 @@ static HKRESTAPI *gHKRESTAPI = nil;
         [request setValue:avalue forHTTPHeaderField:@"Authorization"];
     }
 
+    for ( NSString *field in self.HTTPHeaders )
+    {
+        NSString *value = [self.HTTPHeaders objectForKey:field];
+        [request setValue:value forHTTPHeaderField:field];
+    }
+
     if ( body != nil )
     {
         [request setHTTPBody:body];
     }
+
     if ( contentType != nil )
     {
         [request setValue:contentType forHTTPHeaderField:@"Content-type"];

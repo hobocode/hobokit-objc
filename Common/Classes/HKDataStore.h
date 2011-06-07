@@ -25,6 +25,7 @@
 #import <Foundation/Foundation.h>
 
 typedef void (^HKDataStoreHandler)( NSManagedObjectContext *context );
+typedef void (^HKDataStoreUndoCallbackHandler)( NSManagedObjectContext *context );
 
 @interface HKDataStore : NSObject
 {
@@ -34,6 +35,7 @@ typedef void (^HKDataStoreHandler)( NSManagedObjectContext *context );
     NSPersistentStoreCoordinator    *_coordinator;
     NSMutableSet                    *_bundles;
     BOOL                             _setup;
+    id                               _undoCallbackBlock;
 }
 
 @property (readonly) NSManagedObjectContext *context;

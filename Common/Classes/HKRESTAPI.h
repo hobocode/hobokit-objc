@@ -41,6 +41,8 @@ typedef void (^HKRESTAPIHandler)( id json, NSError *error, NSInteger statusCode 
     NSString            *_APIPassword;
     NSMutableDictionary *_HTTPHeaders;
     dispatch_queue_t     _requests;
+
+    NSArray             *_responseCookies;
 }
 
 @property (retain) NSString *APIBaseURL;
@@ -49,6 +51,7 @@ typedef void (^HKRESTAPIHandler)( id json, NSError *error, NSInteger statusCode 
 @property (retain) NSString *APIPassword;
 @property (retain) NSMutableDictionary *HTTPHeaders;
 
+@property (retain) NSArray *responseCookies;
 
 @end
 

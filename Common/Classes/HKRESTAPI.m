@@ -109,6 +109,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
 #pragma mark HKPublic API
 
 @synthesize APIBaseURL = _APIBaseURL, APIVersion = _APIVersion, APIUsername = _APIUsername, APIPassword = _APIPassword;
+@synthesize responseCookies = _responseCookies;
 @synthesize HTTPHeaders = _HTTPHeaders;
 
 + (HKRESTAPI *)defaultAPI
@@ -231,7 +232,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
         statusCode = [response statusCode];
 
         if ( result == nil )
-        {
+        {            
             if ( synchronously )
             {
                 handler( nil, error, statusCode );
@@ -275,6 +276,10 @@ static HKRESTAPI *gHKRESTAPI = nil;
 
         if ( returnsResult )
         {
+
+            NSArray *cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:[response allHeaderFields] forURL:[response URL]];
+            [self setResponseCookies:cookies];
+            
             decoder = [[JSONDecoder alloc] initWithParseOptions:JKParseOptionNone];
 
             json = [decoder objectWithData:result error:&error];
@@ -354,6 +359,31 @@ static HKRESTAPI *gHKRESTAPI = nil;
         [request setValue:contentType forHTTPHeaderField:@"Content-type"];
     }
 
+    if ( self.responseCookies != nil )
+    {
+        if ([[self responseCookies] count] > 0)
+        {
+            NSHTTPCookie *cookie;
+            NSString *cookieHeader = nil;
+            for ( cookie in [self responseCookies] )
+            {
+                if ( !cookieHeader )
+                {
+                    cookieHeader = [NSString stringWithFormat:@"%@=%@", [cookie name], [cookie value]];
+                }
+                else
+                {
+                    cookieHeader = [NSString stringWithFormat: @"%@; %@=%@", cookieHeader, [cookie name], [cookie value]];
+                }
+            }
+
+            if ( cookieHeader )
+            {
+                [request setValue:cookieHeader forHTTPHeaderField:@"Cookie"];
+            }
+        }
+    }
+    
     [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
     [request setURL:[NSURL URLWithString:mstring]];
 

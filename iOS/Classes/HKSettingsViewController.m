@@ -24,6 +24,8 @@
 
 #import "HKSettingsViewController.h"
 
+#import "HKSettingsController.h"
+
 @interface HKSettingsViewController (HKPrivate)
 
 - (void)setup;
@@ -227,7 +229,7 @@
             cell.accessoryView = nil;
             cell.accessoryType = UITableViewCellAccessoryNone;
             cell.textLabel.textAlignment = UITextAlignmentCenter;
-            cell.textLabel.textColor = HK_COLOR_IPHONE_BLUE;
+            cell.textLabel.textColor = HK_SETTINGS_VIEW_BLUE_COLOR;
             cell.textLabel.enabled = enabled;
             cell.selectionStyle = ( enabled ? UITableViewCellSelectionStyleBlue : UITableViewCellSelectionStyleNone );
             break;

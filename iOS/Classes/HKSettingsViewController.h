@@ -30,6 +30,8 @@
 
 #define HK_TABLE_VIEW_CELL_IDENTIFIER_SETTINGS      @"HKTableViewCellSettings"
 
+#define HK_SETTINGS_VIEW_BLUE_COLOR                 [UIColor colorWithRed:(56.0 / 255.0) green:(84.0 / 255.0) blue:(135.0 / 255.0) alpha:1.0]
+
 @interface HKSettingsViewController : UITableViewController
 {
 }

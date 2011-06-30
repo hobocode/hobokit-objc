@@ -225,6 +225,30 @@ static HKDataStore *gHKDataStore = nil;
     });
 }
 
+- (void)registerChangeHandler:(HKDataStoreChangeHandler)changeHandler forEntityWithName:(NSString *)entityName
+{
+    @synchronized (self)
+    {
+        NSMutableSet *handlers = nil;
+        
+        if ( _changeHandlers == nil )
+        {
+            _changeHandlers = [[NSMutableDictionary alloc] init];
+        }
+        
+        handlers = [_changeHandlers objectForKey:entityName];
+        
+        if ( handlers == nil )
+        {
+            handlers = [NSMutableSet set];
+        
+            [_changeHandlers setObject:handlers forKey:entityName];
+        }
+        
+        [handlers addObject:changeHandler];
+    }
+}
+
 #pragma mark HKPrivate API
 
 - (void)setup
@@ -268,9 +292,86 @@ static HKDataStore *gHKDataStore = nil;
         _context = [[NSManagedObjectContext alloc] init];
         
         [_context setPersistentStoreCoordinator:_coordinator];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(managedObjectContextDidChange:)
+                                                     name:NSManagedObjectContextObjectsDidChangeNotification
+                                                   object:_context];
     }
     
     _setup = YES;
+}
+
+#pragma mark Notifications
+
+#ifdef HK_DEBUG_PROFILE
+static int32_t gHKDataStoreTimeTaken = 0;
+#endif
+
+- (void)managedObjectContextDidChange:(NSNotification *)notification
+{
+#ifdef HK_DEBUG_PROFILE
+    NSDate  *s, *e;
+    int32_t  time;
+    
+    s = [NSDate date];
+#endif
+    
+    @synchronized (self)
+    {
+        NSDictionary                *ui = [notification userInfo];
+        NSSet                       *handlers;
+        NSSet                       *objects;
+        NSManagedObject             *object;
+        NSManagedObjectContext      *context = [notification object];
+        HKDataStoreChangeHandler     handler;
+        
+        objects = [ui objectForKey:NSInsertedObjectsKey];
+        
+        for ( object in objects )
+        {
+            handlers = [_changeHandlers objectForKey:[[object entity] name]];
+            
+            for ( handler in handlers )
+            {
+                handler( context, object, HKDataStoreChangeTypeInsertion );
+            }
+        }
+        
+        objects = [ui objectForKey:NSDeletedObjectsKey];
+        
+        for ( object in objects )
+        {
+            handlers = [_changeHandlers objectForKey:[[object entity] name]];
+            
+            for ( handler in handlers )
+            {
+                handler( context, object, HKDataStoreChangeTypeDeletion );
+            }
+        }
+        
+        objects = [ui objectForKey:NSUpdatedObjectsKey];
+        
+        for ( object in objects )
+        {
+            handlers = [_changeHandlers objectForKey:[[object entity] name]];
+            
+            for ( handler in handlers )
+            {
+                handler( context, object, HKDataStoreChangeTypeUpdate );
+            }
+        }
+    }
+
+#ifdef HK_DEBUG_PROFILE
+    e = [NSDate date];
+    
+    time = (int32_t) (([e timeIntervalSinceDate:s]) * 1e6);
+    
+    OSAtomicAdd32Barrier( time, &gHKDataStoreTimeTaken );
+    
+    NSLog(@"HKDataStore::managedObjectContextDidChange->Total time taken: %d usec", gHKDataStoreTimeTaken);
+#endif
 }
 
 @end

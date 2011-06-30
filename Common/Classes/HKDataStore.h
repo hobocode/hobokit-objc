@@ -24,8 +24,15 @@
 
 #import <Foundation/Foundation.h>
 
+typedef enum
+{
+    HKDataStoreChangeTypeInsertion = 0,
+    HKDataStoreChangeTypeDeletion = 1,
+    HKDataStoreChangeTypeUpdate = 2,
+} HKDataStoreChangeType;
+
 typedef void (^HKDataStoreHandler)( NSManagedObjectContext *context );
-typedef void (^HKDataStoreUndoCallbackHandler)( NSManagedObjectContext *context );
+typedef void (^HKDataStoreChangeHandler)( NSManagedObjectContext *context, NSManagedObject *object, HKDataStoreChangeType type );
 
 @interface HKDataStore : NSObject
 {
@@ -34,8 +41,8 @@ typedef void (^HKDataStoreUndoCallbackHandler)( NSManagedObjectContext *context 
     NSManagedObjectContext          *_context;
     NSPersistentStoreCoordinator    *_coordinator;
     NSMutableSet                    *_bundles;
+    NSMutableDictionary             *_changeHandlers;
     BOOL                             _setup;
-    id                               _undoCallbackBlock;
 }
 
 @property (readonly) NSManagedObjectContext *context;
@@ -53,5 +60,7 @@ typedef void (^HKDataStoreUndoCallbackHandler)( NSManagedObjectContext *context 
 
 - (void)synchronizedAndSaveWithContext:(HKDataStoreHandler)handler;
 - (void)asynchronizedAndSaveWithContext:(HKDataStoreHandler)handler;
+
+- (void)registerChangeHandler:(HKDataStoreChangeHandler)changeHandler forEntityWithName:(NSString *)entityName;
 
 @end

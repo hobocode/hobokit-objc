@@ -28,6 +28,7 @@
 #ifdef HK_DEBUG
 # define HK_DEBUG_DEALLOC
 # define HK_DEBUG_ERRORS
+# define HK_DEBUG_PROFILE
 #endif
 
 #define HK_ERROR_DOMAIN                         @"com.hobocode.error"

@@ -58,4 +58,41 @@ static unsigned char gBase36[36] = {
     return retval;
 }
 
+- (NSString *)ASCIISlugString
+{
+    NSData                  *ASCIIData = [self dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+    NSString                *ASCIIString = [[[NSString alloc] initWithData:ASCIIData encoding:NSASCIIStringEncoding] autorelease];
+    NSMutableCharacterSet   *characters = [[[NSMutableCharacterSet alloc] init] autorelease];
+    NSMutableString         *retval;
+    NSRange                  srange, frange;
+    
+    ASCIIString = [ASCIIString lowercaseString];
+    
+    retval = [NSMutableString stringWithString:ASCIIString];
+    
+    [characters formUnionWithCharacterSet:[NSCharacterSet alphanumericCharacterSet]];
+    [characters formUnionWithCharacterSet:[NSCharacterSet whitespaceCharacterSet]];
+    [characters invert];
+    
+    srange = NSMakeRange( 0, [retval length] );
+    
+    do
+    {
+        frange = [retval rangeOfCharacterFromSet:characters options:0 range:srange];
+        
+        if ( frange.location == NSNotFound )
+            break;
+        
+        [retval replaceCharactersInRange:frange withString:@""];
+        
+        srange.location = frange.location;
+        srange.length = [retval length] - srange.location;
+        
+    } while ( YES );
+    
+    [retval replaceOccurrencesOfString:@" " withString:@"-" options:0 range:NSMakeRange( 0, [retval length] )];
+    
+    return [NSString stringWithString:retval];
+}
+
 @end

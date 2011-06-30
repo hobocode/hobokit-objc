@@ -253,6 +253,8 @@ static HKDataStore *gHKDataStore = nil;
 
 - (void)setup
 {
+    [self enableChangeHandlers]; // enabled by default
+
     if ( _model == nil )
     {
         _model = [[NSManagedObjectModel mergedModelFromBundles:[_bundles allObjects]] retain];
@@ -308,8 +310,21 @@ static HKDataStore *gHKDataStore = nil;
 static int32_t gHKDataStoreTimeTaken = 0;
 #endif
 
+- (void)enableChangeHandlers
+{
+    _changeHandlersDisabled = NO;
+}
+
+- (void)disableChangeHandlers
+{
+    _changeHandlersDisabled = YES;
+}
+
 - (void)managedObjectContextDidChange:(NSNotification *)notification
 {
+    if ( _changeHandlersDisabled )
+        return;
+
 #ifdef HK_DEBUG_PROFILE
     NSDate  *s, *e;
     int32_t  time;

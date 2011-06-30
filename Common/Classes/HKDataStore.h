@@ -42,6 +42,7 @@ typedef void (^HKDataStoreChangeHandler)( NSManagedObjectContext *context, NSMan
     NSPersistentStoreCoordinator    *_coordinator;
     NSMutableSet                    *_bundles;
     NSMutableDictionary             *_changeHandlers;
+    BOOL                             _changeHandlersDisabled;
     BOOL                             _setup;
 }
 
@@ -62,5 +63,7 @@ typedef void (^HKDataStoreChangeHandler)( NSManagedObjectContext *context, NSMan
 - (void)asynchronizedAndSaveWithContext:(HKDataStoreHandler)handler;
 
 - (void)registerChangeHandler:(HKDataStoreChangeHandler)changeHandler forEntityWithName:(NSString *)entityName;
+- (void)enableChangeHandlers;
+- (void)disableChangeHandlers;
 
 @end

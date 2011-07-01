@@ -224,7 +224,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
         }
 
 #ifdef HK_DEBUG_REST_API
-        NSLog(@"HKRESTAPI->Requesting URL: %@", [request URL]);
+        NSLog(@"HKRESTAPI->Requesting URL (%@): %@ (with body: %@)", [request HTTPMethod], [request URL], [[[NSString alloc] initWithData:[request HTTPBody] encoding:NSUTF8StringEncoding] autorelease]);
 #endif
 
         result = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];

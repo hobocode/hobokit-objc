@@ -253,8 +253,6 @@ static HKDataStore *gHKDataStore = nil;
 
 - (void)setup
 {
-    [self enableChangeHandlers]; // enabled by default
-
     if ( _model == nil )
     {
         _model = [[NSManagedObjectModel mergedModelFromBundles:[_bundles allObjects]] retain];
@@ -294,11 +292,8 @@ static HKDataStore *gHKDataStore = nil;
         _context = [[NSManagedObjectContext alloc] init];
         
         [_context setPersistentStoreCoordinator:_coordinator];
-        
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(managedObjectContextDidChange:)
-                                                     name:NSManagedObjectContextObjectsDidChangeNotification
-                                                   object:_context];
+
+        [self enableChangeHandlers]; // enabled by default
     }
     
     _setup = YES;
@@ -312,18 +307,21 @@ static int32_t gHKDataStoreTimeTaken = 0;
 
 - (void)enableChangeHandlers
 {
-    _changeHandlersDisabled = NO;
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(managedObjectContextDidChange:)
+                                                 name:NSManagedObjectContextObjectsDidChangeNotification
+                                               object:_context];
 }
 
 - (void)disableChangeHandlers
 {
-    _changeHandlersDisabled = YES;
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:NSManagedObjectContextObjectsDidChangeNotification
+                                                  object:_context];
 }
 
 - (void)managedObjectContextDidChange:(NSNotification *)notification
 {
-    if ( _changeHandlersDisabled )
-        return;
 
 #ifdef HK_DEBUG_PROFILE
     NSDate  *s, *e;

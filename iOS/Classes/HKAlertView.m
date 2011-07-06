@@ -82,8 +82,10 @@
 
     _cancelHandler = Block_copy( handler );
 
-    self.cancelButtonIndex = [self numberOfButtons];
     [self addButtonWithTitle:title];
+    NSLog(@"cbi: %d", self.cancelButtonIndex);
+    self.cancelButtonIndex = [self numberOfButtons]-1;
+    NSLog(@"cbi: %d", self.cancelButtonIndex);
 }
 
 
@@ -134,11 +136,21 @@
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
-    void (^handler)(HKAlertView *) = [_buttonHandlers objectForKey:[NSNumber numberWithInt:buttonIndex]];
-
-    if ( handler )
+    if ( buttonIndex == self.cancelButtonIndex )
     {
-        handler( (HKAlertView *)alertView );
+        if ( _cancelHandler )
+        {
+            _cancelHandler( self );
+        }
+    }
+    else
+    {
+        void (^handler)(HKAlertView *) = [_buttonHandlers objectForKey:[NSNumber numberWithInt:buttonIndex]];
+
+        if ( handler )
+        {
+            handler( (HKAlertView *)alertView );
+        }
     }
 }
 
@@ -155,14 +167,6 @@
     if ( _willDismissHandler )
     {
         _willDismissHandler( (HKAlertView *)alertView, buttonIndex );
-    }
-}
-
-- (void)alertViewCancel:(UIAlertView *)alertView
-{
-    if ( _cancelHandler )
-    {
-        _cancelHandler( (HKAlertView *)alertView );
     }
 }
 

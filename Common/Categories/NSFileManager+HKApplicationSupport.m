@@ -24,7 +24,7 @@
 
 #import "NSFileManager+HKApplicationSupport.h"
 
-@implementation NSFileManager (NSFileManager_HKApplicationSupport)
+@implementation NSFileManager (HKApplicationSupport)
 
 + (NSString *)applicationSupportDirectory
 {

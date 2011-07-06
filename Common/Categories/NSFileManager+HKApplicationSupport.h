@@ -24,7 +24,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface NSFileManager (NSFileManager_HKApplicationSupport)
+@interface NSFileManager (HKApplicationSupport)
 
 + (NSString *)applicationSupportDirectory;
 

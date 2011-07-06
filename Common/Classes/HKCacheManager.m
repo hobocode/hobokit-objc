@@ -26,7 +26,7 @@
 
 #import "NSFileManager+HKApplicationSupport.h"
 
-static HKCacheManager *gHCCacheManager = nil;
+static HKCacheManager *gHKCacheManager = nil;
 
 @interface HKCacheManager (HKPrivate)
 
@@ -38,15 +38,15 @@ static HKCacheManager *gHCCacheManager = nil;
 
 #pragma mark HKSingleton
 
-+ (id)alloHKithZone:(NSZone *)zone
++ (id)allocWithZone:(NSZone *)zone
 {
     @synchronized(self)
     {
-        if ( gHCCacheManager == nil )
+        if ( gHKCacheManager == nil )
         {
-            gHCCacheManager = [super allocWithZone:zone];
+            gHKCacheManager = [super allocWithZone:zone];
             
-            return gHCCacheManager;
+            return gHKCacheManager;
         }
     }
     
@@ -112,13 +112,13 @@ static HKCacheManager *gHCCacheManager = nil;
 {
     @synchronized ( self )
     {
-        if ( gHCCacheManager == nil )
+        if ( gHKCacheManager == nil )
         {
             [[self alloc] init];
         }
     }
     
-    return gHCCacheManager;
+    return gHKCacheManager;
 }
 
 - (NSData *)cachedDataWithIdentifier:(NSString *)identifier

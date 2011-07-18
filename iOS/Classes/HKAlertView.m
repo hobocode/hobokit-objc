@@ -83,9 +83,7 @@
     _cancelHandler = Block_copy( handler );
 
     [self addButtonWithTitle:title];
-    NSLog(@"cbi: %d", self.cancelButtonIndex);
     self.cancelButtonIndex = [self numberOfButtons]-1;
-    NSLog(@"cbi: %d", self.cancelButtonIndex);
 }
 
 

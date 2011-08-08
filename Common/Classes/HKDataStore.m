@@ -70,7 +70,7 @@ static HKDataStore *gHKDataStore = nil;
     return UINT_MAX;
 }
 
-- (void)release
+- (oneway void)release
 {
 }
 
@@ -126,7 +126,10 @@ static HKDataStore *gHKDataStore = nil;
             _bundles = [[NSMutableSet alloc] init];
         }
         
-        [_bundles addObject:bundle];
+        if ( bundle != nil )
+        {
+            [_bundles addObject:bundle];
+        }
     }
 }
 

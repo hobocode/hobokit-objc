@@ -35,7 +35,7 @@
     id bl = nil;
     if ( block )
     {
-        [block copy];
+        bl = [block copy];
         CFRetain( bl );
     }
 

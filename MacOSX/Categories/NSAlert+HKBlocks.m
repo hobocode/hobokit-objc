@@ -22,12 +22,34 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <Foundation/Foundation.h>
+#import "NSAlert+HKBlocks.h"
 
-@interface NSDate (HKConversions)
+@implementation NSAlert (HKBlocks)
 
-+ (NSDate *)dateWithISO8601Representation:(NSString *)representation;
+- (void)beginSheetModalForWindow:(NSWindow *)window didEndBlock:(void (^)(NSInteger returnCode))block
+{
+    id bl = nil;
+    if ( block )
+    {
+        bl = [block copy];
+        CFRetain( bl );
+    }
 
-- (NSString *)ISO8601Representation;
+    [self beginSheetModalForWindow:window
+                     modalDelegate:self
+                    didEndSelector:@selector(hk_alertDidEnd:returnCode:contextInfo:)
+                       contextInfo:bl];
+}
+
+- (void)hk_alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo
+{
+    if ( contextInfo )
+    {
+        void (^block)( NSInteger returnCode ) = contextInfo;
+        block( returnCode );
+        CFRelease( block );
+        [block release];
+    }
+}
 
 @end

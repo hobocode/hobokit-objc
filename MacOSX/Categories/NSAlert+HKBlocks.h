@@ -22,26 +22,10 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import "NSDate+HKConversions.h"
+#import <Foundation/Foundation.h>
 
-@implementation NSDate (HKConversions)
+@interface NSAlert (HKBlocks)
 
-+ (NSDate *)dateWithISO8601Representation:(NSString *)representation
-{
-    NSDateFormatter	*f = [[[NSDateFormatter alloc] init] autorelease];
-	
-	[f setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
-	
-	return [f dateFromString:representation];
-}
-
-- (NSString *)ISO8601Representation
-{
-	NSDateFormatter	*f = [[[NSDateFormatter alloc] init] autorelease];
-	
-	[f setDateFormat:@"yyyy-MM-dd HH:mm"];
-	
-	return [f stringFromDate:self];
-}
+- (void)beginSheetModalForWindow:(NSWindow *)sheet didEndBlock:(void (^)(NSInteger returnCode))block;
 
 @end

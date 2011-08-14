@@ -117,6 +117,16 @@ static HKDataStore *gHKDataStore = nil;
     return gHKDataStore;
 }
 
+- (NSManagedObjectContext *)context
+{
+    if ( !_setup )
+    {
+        [self setup];
+    }
+
+    return _context;
+}
+
 - (void)addModelBundle:(NSBundle *)bundle
 {
     @synchronized (self)

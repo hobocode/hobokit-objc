@@ -251,7 +251,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
         NSLog(@"\r\n########## HKRESTAPI DATA from %@ (status code: %ld) ##########\r\n%@\r\n########## ------------------------------------------- ##########\r\n", [request HTTPMethod], statusCode, [[[NSString alloc] initWithData:result encoding:NSUTF8StringEncoding] autorelease]);
 #endif
 
-        if ( statusCode < 200 && statusCode >= 300 )
+        if ( statusCode < 200 || statusCode >= 300 )
         {
             error = [NSError errorWithDomain:HK_ERROR_DOMAIN code:HK_ERROR_CODE_WEB_API_ERROR userInfo:nil];
 

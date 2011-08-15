@@ -248,7 +248,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
         }
 
 #ifdef HK_DEBUG_REST_API
-        NSLog(@"\r\n########## HKRESTAPI DATA from %@ (status code: %i) ##########\r\n%@\r\n########## ------------------------------------------- ##########\r\n", [request HTTPMethod], statusCode, [[[NSString alloc] initWithData:result encoding:NSUTF8StringEncoding] autorelease]);
+        NSLog(@"\r\n########## HKRESTAPI DATA from %@ (status code: %i) ##########\r\n%@\r\n########## ------------------------------------------- ##########\r\n", [request HTTPMethod], (int)statusCode, [[[NSString alloc] initWithData:result encoding:NSUTF8StringEncoding] autorelease]);
 #endif
 
         if ( statusCode < 200 || statusCode >= 300 )

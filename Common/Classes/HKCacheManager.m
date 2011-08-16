@@ -209,6 +209,33 @@ static HKCacheManager *gHKCacheManager = nil;
 #endif
 }
 
+- (void)cacheURL:(NSURL *)url completionHandler:(HKCacheManagerCompletionHandler)handler
+{
+    dispatch_queue_t cqueue = dispatch_get_current_queue();
+    
+    dispatch_async( dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 ), ^ {
+        NSError *error = nil;
+        NSData  *data = [NSData dataWithContentsOfURL:url options:0 error:&error];
+        
+        if ( data != nil )
+        {
+            NSString *identifier = [NSString randomBase36StringOfLength:12];
+            
+            [self cacheData:data withIdentifier:identifier];
+            
+            dispatch_async( cqueue, ^{
+                handler( YES, identifier, nil );
+            });
+        }
+        else
+        {
+            dispatch_async( cqueue, ^{
+                handler( NO, nil, error );
+            });
+        }
+    });
+}
+
 #pragma mark HKPrivate API
 
 - (void)setup

@@ -29,6 +29,7 @@
 # define HK_DEBUG_DEALLOC
 # define HK_DEBUG_ERRORS
 # define HK_DEBUG_PROFILE
+# define HK_DEBUG_REST_API
 #endif
 
 #define HK_ERROR_DOMAIN                         @"com.hobocode.error"

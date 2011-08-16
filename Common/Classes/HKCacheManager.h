@@ -32,6 +32,8 @@
 
 #define HK_CACHE_MANAGER_GCD_QUEUE_LABEL     "se.hobocode.gcd.queue.cachemanager"
 
+typedef void (^HKCacheManagerCompletionHandler)( BOOL success, NSString *identifier, NSError *error );
+
 @interface HKCacheManager : NSObject
 {
 @private
@@ -49,5 +51,7 @@
 
 - (NSData *)cachedDataWithIdentifier:(NSString *)identifier;
 - (void)cacheData:(NSData *)data withIdentifier:(NSString *)identifier;
+
+- (void)cacheURL:(NSURL *)url completionHandler:(HKCacheManagerCompletionHandler)handler;
 
 @end

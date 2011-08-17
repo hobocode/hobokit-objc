@@ -117,6 +117,7 @@ static HKDataStore *gHKDataStore = nil;
     return gHKDataStore;
 }
 
+/*
 - (NSManagedObjectContext *)context
 {
     if ( !_setup )
@@ -126,6 +127,7 @@ static HKDataStore *gHKDataStore = nil;
 
     return _context;
 }
+*/
 
 - (void)addModelBundle:(NSBundle *)bundle
 {

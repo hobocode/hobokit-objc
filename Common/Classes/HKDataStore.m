@@ -117,6 +117,18 @@ static HKDataStore *gHKDataStore = nil;
     return gHKDataStore;
 }
 
+/*
+- (NSManagedObjectContext *)context
+{
+    if ( !_setup )
+    {
+        [self setup];
+    }
+
+    return _context;
+}
+*/
+
 - (void)addModelBundle:(NSBundle *)bundle
 {
     @synchronized (self)
@@ -251,6 +263,27 @@ static HKDataStore *gHKDataStore = nil;
         [handlers addObject:changeHandler];
     }
 }
+
+- (void)purgeData
+{
+    if ( !_setup )
+    {
+        [self setup];
+    }
+
+    NSPersistentStore *store = [[_coordinator persistentStores] objectAtIndex:0];
+    NSError *error = nil;
+    NSURL *storeURL = store.URL;
+    [_coordinator removePersistentStore:store error:&error];
+    [[NSFileManager defaultManager] removeItemAtPath:storeURL.path error:&error];
+
+    [_model release]; _model = nil;
+    [_context release]; _context = nil;
+    [_coordinator release]; _coordinator = nil;
+
+    _setup = NO;
+}
+
 
 #pragma mark HKPrivate API
 

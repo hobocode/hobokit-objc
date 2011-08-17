@@ -209,16 +209,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
 
         if ( request == nil )
         {
-            if ( synchronously )
-            {
-                handler( nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil], statusCode );
-            }
-            else
-            {
-                dispatch_async( dispatch_get_main_queue(), ^ {
-                    handler( nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil], statusCode );
-                } );
-            }
+            handler( nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil], statusCode );
 
             return;
         }
@@ -233,16 +224,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
 
         if ( result == nil )
         {            
-            if ( synchronously )
-            {
-                handler( nil, error, statusCode );
-            }
-            else
-            {
-                dispatch_async( dispatch_get_main_queue(), ^ {
-                    handler( nil, error, statusCode );
-                } );
-            }
+            handler( nil, error, statusCode );
 
             return;
         }
@@ -255,16 +237,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
         {
             error = [NSError errorWithDomain:HK_ERROR_DOMAIN code:HK_ERROR_CODE_WEB_API_ERROR userInfo:nil];
 
-            if ( synchronously )
-            {
-                handler( nil, error, statusCode );
-            }
-            else
-            {
-                dispatch_async( dispatch_get_main_queue(), ^ {
-                    handler( nil, error, statusCode );
-                } );
-            }
+            handler( nil, error, statusCode );
 
             return;
         }
@@ -276,8 +249,8 @@ static HKRESTAPI *gHKRESTAPI = nil;
 
         if ( returnsResult )
         {
-
             NSArray *cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:[response allHeaderFields] forURL:[response URL]];
+            
             [self setResponseCookies:cookies];
             
             decoder = [[JSONDecoder alloc] initWithParseOptions:JKParseOptionNone];
@@ -289,30 +262,12 @@ static HKRESTAPI *gHKRESTAPI = nil;
 
         if ( json == nil )
         {
-            if ( synchronously )
-            {
-                handler( nil, returnsResult ? error : nil, statusCode );
-            }
-            else
-            {
-                dispatch_async( dispatch_get_main_queue(), ^ {
-                    handler( nil, returnsResult ? error : nil, statusCode );
-                } );
-            }
-
+            handler( nil, returnsResult ? error : nil, statusCode );
+            
             return;
         }
 
-        if ( synchronously )
-        {
-            handler( json, nil, statusCode );
-        }
-        else
-        {
-            dispatch_async( dispatch_get_main_queue(), ^ {
-                handler( json, nil, statusCode );
-            } );
-        }
+        handler( json, nil, statusCode );
     };
 
     if ( synchronously )

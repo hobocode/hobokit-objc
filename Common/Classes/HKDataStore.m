@@ -240,27 +240,16 @@ static HKDataStore *gHKDataStore = nil;
     });
 }
 
-- (void)registerChangeHandler:(HKDataStoreChangeHandler)changeHandler forEntityWithName:(NSString *)entityName
+- (void)registerChangeHandler:(HKDataStoreChangeHandler)handler
 {
     @synchronized (self)
-    {
-        NSMutableSet *handlers = nil;
-        
-        if ( _changeHandlers == nil )
+    {        
+        if ( _chandlers == nil )
         {
-            _changeHandlers = [[NSMutableDictionary alloc] init];
+            _chandlers = [[NSMutableSet alloc] init];
         }
         
-        handlers = [_changeHandlers objectForKey:entityName];
-        
-        if ( handlers == nil )
-        {
-            handlers = [NSMutableSet set];
-        
-            [_changeHandlers setObject:handlers forKey:entityName];
-        }
-        
-        [handlers addObject:changeHandler];
+        [_chandlers addObject:handler];
     }
 }
 
@@ -358,7 +347,6 @@ static int32_t gHKDataStoreTimeTaken = 0;
 
 - (void)managedObjectContextDidChange:(NSNotification *)notification
 {
-
 #ifdef HK_DEBUG_PROFILE
     NSDate  *s, *e;
     int32_t  time;
@@ -369,47 +357,32 @@ static int32_t gHKDataStoreTimeTaken = 0;
     @synchronized (self)
     {
         NSDictionary                *ui = [notification userInfo];
-        NSSet                       *handlers;
         NSSet                       *objects;
-        NSManagedObject             *object;
         NSManagedObjectContext      *context = [notification object];
-        HKDataStoreChangeHandler     handler;
         
         objects = [ui objectForKey:NSInsertedObjectsKey];
         
-        for ( object in objects )
-        {
-            handlers = [_changeHandlers objectForKey:[[object entity] name]];
+        [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
+            HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
             
-            for ( handler in handlers )
-            {
-                handler( context, object, HKDataStoreChangeTypeInsertion );
-            }
-        }
+            handler( context, objects, HKDataStoreChangeTypeInsertion );
+        }];
         
         objects = [ui objectForKey:NSDeletedObjectsKey];
         
-        for ( object in objects )
-        {
-            handlers = [_changeHandlers objectForKey:[[object entity] name]];
-            
-            for ( handler in handlers )
-            {
-                handler( context, object, HKDataStoreChangeTypeDeletion );
-            }
-        }
+        [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
+            HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
+
+            handler( context, objects, HKDataStoreChangeTypeDeletion );
+        }];
         
         objects = [ui objectForKey:NSUpdatedObjectsKey];
         
-        for ( object in objects )
-        {
-            handlers = [_changeHandlers objectForKey:[[object entity] name]];
-            
-            for ( handler in handlers )
-            {
-                handler( context, object, HKDataStoreChangeTypeUpdate );
-            }
-        }
+        [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {            
+            HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
+
+            handler( context, objects, HKDataStoreChangeTypeUpdate );
+        }];
     }
 
 #ifdef HK_DEBUG_PROFILE

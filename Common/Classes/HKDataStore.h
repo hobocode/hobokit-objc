@@ -32,7 +32,7 @@ typedef enum
 } HKDataStoreChangeType;
 
 typedef void (^HKDataStoreHandler)( NSManagedObjectContext *context );
-typedef void (^HKDataStoreChangeHandler)( NSManagedObjectContext *context, NSManagedObject *object, HKDataStoreChangeType type );
+typedef void (^HKDataStoreChangeHandler)( NSManagedObjectContext *context, NSSet *objects, HKDataStoreChangeType type );
 
 @interface HKDataStore : NSObject
 {
@@ -41,7 +41,7 @@ typedef void (^HKDataStoreChangeHandler)( NSManagedObjectContext *context, NSMan
     NSManagedObjectContext          *_context;
     NSPersistentStoreCoordinator    *_coordinator;
     NSMutableSet                    *_bundles;
-    NSMutableDictionary             *_changeHandlers;
+    NSMutableSet                    *_chandlers;
     BOOL                             _setup;
 }
 
@@ -63,7 +63,7 @@ typedef void (^HKDataStoreChangeHandler)( NSManagedObjectContext *context, NSMan
 
 - (void)purgeData;
 
-- (void)registerChangeHandler:(HKDataStoreChangeHandler)changeHandler forEntityWithName:(NSString *)entityName;
+- (void)registerChangeHandler:(HKDataStoreChangeHandler)handler;
 - (void)enableChangeHandlers;
 - (void)disableChangeHandlers;
 

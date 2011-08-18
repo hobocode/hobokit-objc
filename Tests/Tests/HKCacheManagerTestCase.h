@@ -22,37 +22,14 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <Foundation/Foundation.h>
+#import <SenTestingKit/SenTestingKit.h>
 
-#import <sqlite3.h>
+@class HKCacheManager;
 
-#ifdef HK_DEBUG
-# define HK_DEBUG_CACHE
-#endif
-
-typedef void (^HKCacheManagerCompletionHandler)( BOOL success, NSString *identifier, NSError *error );
-
-@interface HKCacheManager : NSObject
+@interface HKCacheManagerTestCase : SenTestCase
 {
-@private
-	sqlite3			   *_database;
-	sqlite3_stmt	   *_select;
-	sqlite3_stmt	   *_insert;
-	dispatch_queue_t	_queue;
-
-    NSString           *_path;
+    HKCacheManager *cacheManager;
+    NSString *path;
 }
-
-@property (nonatomic, retain) NSString *path;
-
-+ (HKCacheManager *)defaultManager;
-
-+ (HKCacheManager *)cacheManagerWithPath:(NSString *)path;
-- (id)initWithPath:(NSString *)path;
-
-- (NSData *)cachedDataWithIdentifier:(NSString *)identifier;
-- (void)cacheData:(NSData *)data withIdentifier:(NSString *)identifier;
-
-- (void)cacheURL:(NSURL *)url completionHandler:(HKCacheManagerCompletionHandler)handler;
 
 @end

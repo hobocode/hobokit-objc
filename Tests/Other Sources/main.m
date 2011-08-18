@@ -22,37 +22,9 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <Foundation/Foundation.h>
+#import <Cocoa/Cocoa.h>
 
-#import <sqlite3.h>
-
-#ifdef HK_DEBUG
-# define HK_DEBUG_CACHE
-#endif
-
-typedef void (^HKCacheManagerCompletionHandler)( BOOL success, NSString *identifier, NSError *error );
-
-@interface HKCacheManager : NSObject
+int main(int argc, char *argv[])
 {
-@private
-	sqlite3			   *_database;
-	sqlite3_stmt	   *_select;
-	sqlite3_stmt	   *_insert;
-	dispatch_queue_t	_queue;
-
-    NSString           *_path;
+    return NSApplicationMain(argc,  (const char **) argv);
 }
-
-@property (nonatomic, retain) NSString *path;
-
-+ (HKCacheManager *)defaultManager;
-
-+ (HKCacheManager *)cacheManagerWithPath:(NSString *)path;
-- (id)initWithPath:(NSString *)path;
-
-- (NSData *)cachedDataWithIdentifier:(NSString *)identifier;
-- (void)cacheData:(NSData *)data withIdentifier:(NSString *)identifier;
-
-- (void)cacheURL:(NSURL *)url completionHandler:(HKCacheManagerCompletionHandler)handler;
-
-@end

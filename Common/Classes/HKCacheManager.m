@@ -225,7 +225,7 @@ static HKCacheManager *gHKCacheManager = nil;
     {
         if ( _database == nil )
         {
-            NSFileManager   *fm = [NSFileManager defaultManager];
+            NSFileManager   *fm = [[NSFileManager alloc] init];
             NSString        *dir = [self.path stringByDeletingLastPathComponent];
             NSError         *error = nil;
 
@@ -239,6 +239,8 @@ static HKCacheManager *gHKCacheManager = nil;
                     return NO;
                 }
             }
+
+            [fm release], fm = nil;
 
             if ( !_path )
             {

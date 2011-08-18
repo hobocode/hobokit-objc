@@ -25,66 +25,43 @@
 #import "HKCacheManager.h"
 
 #import "NSFileManager+HKApplicationSupport.h"
+#import "NSString+HKGenerator.h"
 
 static HKCacheManager *gHKCacheManager = nil;
 
 @interface HKCacheManager (HKPrivate)
 
-- (void)setup;
+- (BOOL)setup;
 
 @end
 
 @implementation HKCacheManager
 
-#pragma mark HKSingleton
+@synthesize path = _path;
 
-+ (id)allocWithZone:(NSZone *)zone
+- (id)initWithPath:(NSString *)path
 {
-    @synchronized(self)
-    {
-        if ( gHKCacheManager == nil )
-        {
-            gHKCacheManager = [super allocWithZone:zone];
-            
-            return gHKCacheManager;
-        }
-    }
-    
-    return nil;
-}
+    BOOL success = NO;
 
-- (id)copyWithZone:(NSZone *)zone
-{
-    return self;
-}
-
-- (id)retain
-{
-    return self;
-}
-
-- (NSUInteger)retainCount
-{
-    return UINT_MAX;
-}
-
-- (oneway void)release
-{
-}
-
-- (id)autorelease
-{
-    return self;
-}
-
-- (id)init
-{
     if ( self = [super init] )
     {
-        [self setup];
+        self.path = path;
+
+        success = [self setup];
     }
-    
+
+    if ( !success )
+    {
+        [self release];
+        return nil;
+    }
+
     return self;
+}
+
++ (HKCacheManager *)cacheManagerWithPath:(NSString *)path
+{
+    return [[[HKCacheManager alloc] initWithPath:path] autorelease];
 }
 
 - (void)dealloc
@@ -102,7 +79,9 @@ static HKCacheManager *gHKCacheManager = nil;
     {
         dispatch_release( _queue ); _queue = nil;
     }
-    
+
+    [_path release];
+
     [super dealloc];
 }
 
@@ -114,7 +93,9 @@ static HKCacheManager *gHKCacheManager = nil;
     {
         if ( gHKCacheManager == nil )
         {
-            [[self alloc] init];
+            NSString *path = [[NSFileManager applicationSupportDirectory] stringByAppendingPathComponent:@"Cache.db"];
+
+            gHKCacheManager = [[self alloc] initWithPath:path];
         }
     }
     
@@ -238,17 +219,16 @@ static HKCacheManager *gHKCacheManager = nil;
 
 #pragma mark HKPrivate API
 
-- (void)setup
+- (BOOL)setup
 {
     @synchronized (self)
     {
         if ( _database == nil )
         {
             NSFileManager   *fm = [NSFileManager defaultManager];
-            NSString        *dir = [NSFileManager applicationSupportDirectory];
-            NSString        *path = [dir stringByAppendingPathComponent:@"Cache.db"];
+            NSString        *dir = [self.path stringByDeletingLastPathComponent];
             NSError         *error = nil;
-            
+
             if ( ![fm fileExistsAtPath:dir isDirectory:NULL] )
             {
                 if ( ![fm createDirectoryAtPath:dir withIntermediateDirectories:NO attributes:nil error:&error] )
@@ -256,18 +236,22 @@ static HKCacheManager *gHKCacheManager = nil;
 #ifdef HK_DEBUG_ERRORS
                     NSLog(@"HKCacheManager::setup->Error: '%@'", error);
 #endif
-                    return;
+                    return NO;
                 }
             }
-            
-            if ( path )
+
+            if ( !_path )
             {
-                if ( sqlite3_open( [path UTF8String], &_database ) != SQLITE_OK )
+                [NSException raise:@"HKNilObjectException" format:@"Path cannot be nil"];
+            }
+            else
+            {
+                if ( sqlite3_open( [_path UTF8String], &_database ) != SQLITE_OK )
                 {
 #ifdef HK_DEBUG_CACHE
                     NSLog(@"HKCacheManager->Error: 'Couldn't create cache database!'");
 #endif
-                    abort();
+                    return NO;
                 }
                 
                 sqlite3_stmt *table_stmt;
@@ -277,7 +261,7 @@ static HKCacheManager *gHKCacheManager = nil;
 #ifdef HK_DEBUG_CACHE
                     NSLog(@"HKCacheManager->Error: 'Couldn't create database cache table statement!'");
 #endif
-                    abort();
+                    return NO;
                 }
                 
                 if ( sqlite3_step( table_stmt ) != SQLITE_DONE )
@@ -285,7 +269,7 @@ static HKCacheManager *gHKCacheManager = nil;
 #ifdef HK_DEBUG_CACHE
                     NSLog(@"HKCacheManager->Error: 'Couldn't execute database cache table statement!'");
 #endif
-                    abort();
+                    return NO;
                 }
                 
                 sqlite3_finalize( table_stmt );
@@ -295,7 +279,7 @@ static HKCacheManager *gHKCacheManager = nil;
 #ifdef HK_DEBUG_CACHE
                     NSLog(@"HKCacheManager->Error: 'Couldn't create database cache identifier index statement!'");
 #endif
-                    abort();
+                    return NO;
                 }
                 
                 if ( sqlite3_step( table_stmt ) != SQLITE_DONE )
@@ -303,7 +287,7 @@ static HKCacheManager *gHKCacheManager = nil;
 #ifdef HK_DEBUG_CACHE
                     NSLog(@"HKCacheManager->Error: 'Couldn't execute database cache identifier index statement!'");
 #endif
-                    abort();
+                    return NO;
                 }
                 
                 sqlite3_finalize( table_stmt );
@@ -319,7 +303,7 @@ static HKCacheManager *gHKCacheManager = nil;
 #ifdef HK_DEBUG_CACHE
                 NSLog(@"HKCacheManager->Error: 'Couldn't create database data select statement!'");
 #endif
-                abort();
+                return NO;
             }
             
             if ( _insert )
@@ -332,15 +316,18 @@ static HKCacheManager *gHKCacheManager = nil;
 #ifdef HK_DEBUG_CACHE
                 NSLog(@"HKCacheManager->Error: 'Couldn't create database data insert statement!'");
 #endif
-                abort();
+                return NO;
             }
         }
         
         if ( _queue == nil )
         {
-            _queue = dispatch_queue_create( HK_CACHE_MANAGER_GCD_QUEUE_LABEL, NULL );
+            NSString *queueName = [NSString stringWithFormat:@"%@.gcd.queue.cachemanager-%p", [[NSBundle mainBundle] bundleIdentifier], self];
+            _queue = dispatch_queue_create( [queueName UTF8String], NULL );
         }
     }
+
+    return YES;
 }
 
 @end

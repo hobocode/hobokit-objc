@@ -30,8 +30,6 @@
 # define HK_DEBUG_CACHE
 #endif
 
-#define HK_CACHE_MANAGER_GCD_QUEUE_LABEL     "se.hobocode.gcd.queue.cachemanager"
-
 typedef void (^HKCacheManagerCompletionHandler)( BOOL success, NSString *identifier, NSError *error );
 
 @interface HKCacheManager : NSObject
@@ -41,13 +39,16 @@ typedef void (^HKCacheManagerCompletionHandler)( BOOL success, NSString *identif
 	sqlite3_stmt	   *_select;
 	sqlite3_stmt	   *_insert;
 	dispatch_queue_t	_queue;
+
+    NSString           *_path;
 }
 
-@end
-
-@interface HKCacheManager (HKPublic)
+@property (nonatomic, retain) NSString *path;
 
 + (HKCacheManager *)defaultManager;
+
++ (HKCacheManager *)cacheManagerWithPath:(NSString *)path;
+- (id)initWithPath:(NSString *)path;
 
 - (NSData *)cachedDataWithIdentifier:(NSString *)identifier;
 - (void)cacheData:(NSData *)data withIdentifier:(NSString *)identifier;

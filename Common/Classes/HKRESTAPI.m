@@ -193,7 +193,8 @@ static HKRESTAPI *gHKRESTAPI = nil;
     if ( _requests == nil )
     {
         _requests = dispatch_queue_create( "se.hobocode.gcd.restapi", NULL );
-        self.HTTPHeaders = [[[NSMutableDictionary alloc] init] autorelease];
+        
+        self.HTTPHeaders = [NSMutableDictionary dictionary];
     }
 }
 

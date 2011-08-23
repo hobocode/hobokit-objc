@@ -285,7 +285,7 @@ static HKDataStore *gHKDataStore = nil;
     
     if ( _coordinator == nil )
     {
-        NSFileManager   *fm = [NSFileManager defaultManager];
+        NSFileManager   *fm = [[[NSFileManager alloc] init] autorelease];
         NSString        *dir = [NSFileManager applicationSupportDirectory];
         NSURL           *url = [NSURL fileURLWithPath:[dir stringByAppendingPathComponent:@"Data.db"]];
         NSError         *error = nil;

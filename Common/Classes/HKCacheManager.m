@@ -116,7 +116,7 @@ static HKCacheManager *gHKCacheManager = nil;
 #endif
     
     const char *cidentifier = [identifier UTF8String];
-    const int cilength = strlen( cidentifier );
+    const int cilength = (int)strlen( cidentifier );
     
     dispatch_sync( _queue, ^ {
         sqlite3_bind_text( _select, 1, cidentifier, cilength, NULL );
@@ -166,8 +166,8 @@ static HKCacheManager *gHKCacheManager = nil;
     
     const char *cidentifier = [identifier UTF8String];
     const void *cdata = [data bytes];
-    const int cilength = strlen( cidentifier );
-    const int cdlength = [data length];
+    const int cilength = (int)strlen( cidentifier );
+    const int cdlength = (int)[data length];
     
     dispatch_sync( _queue, ^ {
         sqlite3_bind_text( _insert, 1, cidentifier, cilength, NULL );

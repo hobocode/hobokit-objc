@@ -24,10 +24,8 @@
 
 #import "HKStoreController.h"
 
-#import "HKStoreProduct.h"
+#import "HKStorePurchase.h"
 #import "HKStoreObserver.h"
-
-#import "NSString+HKFormatting.h"
 
 static HKStoreController *gHKStoreController = nil;
 
@@ -71,7 +69,7 @@ static HKStoreController *gHKStoreController = nil;
     return UINT_MAX;
 }
 
-- (void)release
+- (oneway void)release
 {
 }
 
@@ -138,9 +136,9 @@ static HKStoreController *gHKStoreController = nil;
     NSMutableSet        *identifiers = [NSMutableSet setWithCapacity:[products count]];
     NSString            *identifier;
     
-    for ( id <HKStoreProduct> product in products )
+    for ( id <HKStorePurchase> product in products )
     {
-        identifier = [product productIdentifier];
+        identifier = [product identifier];
         
         if ( identifier )
         {
@@ -167,9 +165,9 @@ static HKStoreController *gHKStoreController = nil;
     NSMutableSet        *identifiers = [NSMutableSet setWithCapacity:[products count]];
     NSString            *identifier;
     
-    for ( id <HKStoreProduct> product in products )
+    for ( id <HKStorePurchase> product in products )
     {
-        identifier = [product productIdentifier];
+        identifier = [product identifier];
         
         if ( identifier )
         {
@@ -194,13 +192,13 @@ static HKStoreController *gHKStoreController = nil;
 
 - (void)completeTransaction:(SKPaymentTransaction *)transaction
 {
-    id <HKStoreProduct> product = [_purchases objectForKey:transaction.payment.productIdentifier];
+    id <HKStorePurchase> product = [_purchases objectForKey:transaction.payment.productIdentifier];
     
     for ( id <HKStoreObserver> observer in _observers )
     {
-        if ( [observer respondsToSelector:@selector(storeController:didFinishPurchaseOfProduct:)] )
+        if ( [observer respondsToSelector:@selector(storeController:didFinishPurchaseOfPurchase:)] )
         {
-            [observer storeController:self didFinishPurchaseOfProduct:product];
+            [observer storeController:self didFinishPurchaseOfPurchase:product];
         }
     }
     
@@ -211,13 +209,13 @@ static HKStoreController *gHKStoreController = nil;
 
 - (void)restoreTransaction:(SKPaymentTransaction *)transaction
 {
-    id <HKStoreProduct> product = [_purchases objectForKey:transaction.payment.productIdentifier];
+    id <HKStorePurchase> product = [_purchases objectForKey:transaction.payment.productIdentifier];
     
     for ( id <HKStoreObserver> observer in _observers )
     {
-        if ( [observer respondsToSelector:@selector(storeController:didFinishPurchaseOfProduct:)] )
+        if ( [observer respondsToSelector:@selector(storeController:didFinishPurchaseOfPurchase:)] )
         {
-            [observer storeController:self didFinishPurchaseOfProduct:product];
+            [observer storeController:self didFinishPurchaseOfPurchase:product];
         }
     }
     
@@ -228,15 +226,15 @@ static HKStoreController *gHKStoreController = nil;
 
 - (void)failedTransaction:(SKPaymentTransaction *)transaction
 {
-    id <HKStoreProduct> product = [_purchases objectForKey:transaction.payment.productIdentifier];
+    id <HKStorePurchase> product = [_purchases objectForKey:transaction.payment.productIdentifier];
     
     if ( transaction.error.code != SKErrorPaymentCancelled )
     {
         for ( id <HKStoreObserver> observer in _observers )
         {
-            if ( [observer respondsToSelector:@selector(storeController:didFailPurchaseOfProduct:error:)] )
+            if ( [observer respondsToSelector:@selector(storeController:didFailPurchaseOfPurchase:error:)] )
             {
-                [observer storeController:self didFailPurchaseOfProduct:product error:transaction.error];
+                [observer storeController:self didFailPurchaseOfPurchase:product error:transaction.error];
             }
         }
     }
@@ -244,9 +242,9 @@ static HKStoreController *gHKStoreController = nil;
     {
         for ( id <HKStoreObserver> observer in _observers )
         {
-            if ( [observer respondsToSelector:@selector(storeController:didCancelPurchaseOfProduct:)] )
+            if ( [observer respondsToSelector:@selector(storeController:didCancelPurchaseOfPurchase:)] )
             {
-                [observer storeController:self didCancelPurchaseOfProduct:product];
+                [observer storeController:self didCancelPurchaseOfPurchase:product];
             }
         }
     }
@@ -278,7 +276,7 @@ static HKStoreController *gHKStoreController = nil;
 
 - (void)productsRequest:(SKProductsRequest *)request didReceiveResponse:(SKProductsResponse *)response
 {
-    id <SKStoreProduct> product;
+    id <HKStorePurchase> product;
     
     for ( SKProduct *storeProduct in response.products )
     {
@@ -286,13 +284,14 @@ static HKStoreController *gHKStoreController = nil;
         
         if ( product )
         {
-            [product setFormattedPriceString:[NSString stringRepresentingNumberAsCurrency:storeProduct.price inLocale:storeProduct.priceLocale]];
+            [product setPrice:[storeProduct price]];
+            [product setPriceLocale:[storeProduct priceLocale]];
             
             for ( id <HKStoreObserver> observer in _observers )
             {
-                if ( [observer respondsToSelector:@selector(storeController:didFinishLookupOfProduct:)] )
+                if ( [observer respondsToSelector:@selector(storeController:didFinishLookupOfPurchase:)] )
                 {
-                    [observer storeController:self didFinishLookupOfProduct:product];
+                    [observer storeController:self didFinishLookupOfPurchase:product];
                 }
             }
             

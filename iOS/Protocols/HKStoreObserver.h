@@ -24,18 +24,18 @@
 
 #import <UIKit/UIKit.h>
 
-#import "HKStoreProduct.h"
+@class HKStoreController;
+@protocol HKStorePurchase;
 
 @protocol HKStoreObserver <NSObject>
-
 @optional
 
 - (void)storeController:(HKStoreController *)controller didFailWithError:(NSError *)error;
 
-- (void)storeController:(HKStoreController *)controller didFinishLookupOfProduct:(id <HKStoreProduct>)product;
+- (void)storeController:(HKStoreController *)controller didFinishLookupOfPurchase:(id <HKStorePurchase>)purchase;
 
-- (void)storeController:(HKStoreController *)controller didFinishPurchaseOfProduct:(id <HKStoreProduct>)product;
-- (void)storeController:(HKStoreController *)controller didCancelPurchaseOfProduct:(id <HKStoreProduct>)product;
-- (void)storeController:(HKStoreController *)controller didFailPurchaseOfProduct:(id <HKStoreProduct>)product error:(NSError *)error;
+- (void)storeController:(HKStoreController *)controller didFinishPurchaseOfPurchase:(id <HKStorePurchase>)purchase;
+- (void)storeController:(HKStoreController *)controller didCancelPurchaseOfPurchase:(id <HKStorePurchase>)purchase;
+- (void)storeController:(HKStoreController *)controller didFailPurchaseOfPurchase:(id <HKStorePurchase>)purchase error:(NSError *)error;
 
 @end

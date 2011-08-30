@@ -22,24 +22,18 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import "NSString+HKFormatting.h"
+#import <Foundation/Foundation.h>
 
-@implementation NSString (NSString_HKFormatting)
+@protocol HKStorePurchase <NSObject>
 
-+ (NSString *)stringRepresentingNumberAsCurrency:(NSNumber *)number inLocale:(NSLocale *)locale
-{
-	NSNumberFormatter	*nf = [[NSNumberFormatter alloc] init];
-	NSString			*result;
-	
-	[nf setFormatterBehavior:NSNumberFormatterBehavior10_4];
-	[nf setNumberStyle:NSNumberFormatterCurrencyStyle];
-	[nf setLocale:locale];
-	
-	result = [nf stringFromNumber:number];
-	
-	[nf release];
-	
-	return result;
-}
+@required
+
+- (NSString *)identifier;
+
+- (NSNumber *)price;
+- (void)setPrice:(NSNumber *)value;
+
+- (NSLocale *)priceLocale;
+- (void)setPriceLocale:(NSLocale *)value;
 
 @end

@@ -217,6 +217,42 @@ static HKCacheManager *gHKCacheManager = nil;
     });
 }
 
+- (NSArray *)allIdentifiers
+{
+    NSMutableArray *retval = [NSMutableArray array];
+
+#ifdef HK_DEBUG_CACHE
+    NSDate *s, *e;
+
+    s = [NSDate date];
+#endif
+
+    dispatch_sync( _queue, ^ {
+
+        while ( sqlite3_step( _selectIdentifiers ) == SQLITE_ROW )
+        {
+            if ( sqlite3_column_type( _selectIdentifiers, 0 ) == SQLITE_TEXT )
+            {
+                const unsigned char *bytes = sqlite3_column_text( _selectIdentifiers, 0 );
+
+                NSString *identifier = [NSString stringWithUTF8String:(const char *)bytes];
+
+                [retval addObject:identifier];
+            }
+        }
+
+        sqlite3_reset( _selectIdentifiers );
+    });
+
+#ifdef HK_DEBUG_CACHE
+    e = [NSDate date];
+
+    NSLog(@"HKCacheManager->Last cache transaction (load): %f ms", [e timeIntervalSinceDate:s] * 1000.0f);
+#endif
+
+    return retval;
+}
+
 #pragma mark HKPrivate API
 
 - (BOOL)setup
@@ -307,7 +343,19 @@ static HKCacheManager *gHKCacheManager = nil;
 #endif
                 return NO;
             }
-            
+
+            if ( _selectIdentifiers )
+            {
+                sqlite3_finalize( _selectIdentifiers ); _selectIdentifiers = nil;
+            }
+
+            if ( sqlite3_prepare_v2( _database, "SELECT identifier from cache", -1, &_selectIdentifiers, NULL ) != SQLITE_OK )
+            {
+#ifdef HK_DEBUG_CACHE
+                NSLog(@"HKCacheManager->Error: 'Couldn't create database identifiers select statement!'");
+#endif
+            }
+
             if ( _insert )
             {
                 sqlite3_finalize( _insert ); _insert = nil;

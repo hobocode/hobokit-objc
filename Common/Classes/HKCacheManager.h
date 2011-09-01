@@ -38,6 +38,7 @@ typedef void (^HKCacheManagerCompletionHandler)( BOOL success, NSString *identif
 	sqlite3			   *_database;
 	sqlite3_stmt	   *_select;
 	sqlite3_stmt	   *_insert;
+	sqlite3_stmt	   *_selectIdentifiers;
 	dispatch_queue_t	_queue;
 
     NSString           *_path;
@@ -54,5 +55,7 @@ typedef void (^HKCacheManagerCompletionHandler)( BOOL success, NSString *identif
 - (void)cacheData:(NSData *)data withIdentifier:(NSString *)identifier;
 
 - (void)cacheURL:(NSURL *)url completionHandler:(HKCacheManagerCompletionHandler)handler;
+
+- (NSArray *)allIdentifiers;
 
 @end

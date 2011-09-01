@@ -25,12 +25,13 @@
 #ifndef HOBO_KIT_DEFINES_H
 #define HOBO_KIT_DEFINES_H
 
-#ifdef HK_DEBUG
+//#ifdef HK_DEBUG
 # define HK_DEBUG_DEALLOC
 # define HK_DEBUG_ERRORS
 # define HK_DEBUG_PROFILE
 # define HK_DEBUG_REST_API
-#endif
+//#endif
+
 
 #define HK_ERROR_DOMAIN                         @"com.hobocode.error"
 

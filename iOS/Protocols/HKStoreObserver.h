@@ -34,8 +34,8 @@
 
 - (void)storeController:(HKStoreController *)controller didFinishLookupOfPurchase:(id <HKStorePurchase>)purchase;
 
-- (void)storeController:(HKStoreController *)controller didFinishPurchaseOfPurchase:(id <HKStorePurchase>)purchase;
-- (void)storeController:(HKStoreController *)controller didCancelPurchaseOfPurchase:(id <HKStorePurchase>)purchase;
-- (void)storeController:(HKStoreController *)controller didFailPurchaseOfPurchase:(id <HKStorePurchase>)purchase error:(NSError *)error;
+- (void)storeController:(HKStoreController *)controller didFinishPurchase:(id <HKStorePurchase>)purchase receipt:(NSData *)receipt;
+- (void)storeController:(HKStoreController *)controller didCancelPurchase:(id <HKStorePurchase>)purchase;
+- (void)storeController:(HKStoreController *)controller didFailPurchase:(id <HKStorePurchase>)purchase error:(NSError *)error;
 
 @end

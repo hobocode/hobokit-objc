@@ -320,7 +320,7 @@ static HKDataStore *gHKDataStore = nil;
 
         [self enableChangeHandlers]; // enabled by default
     }
-    
+        
     _setup = YES;
 }
 
@@ -347,53 +347,58 @@ static int32_t gHKDataStoreTimeTaken = 0;
 
 - (void)managedObjectContextDidChange:(NSNotification *)notification
 {
+    dispatch_async( dispatch_get_main_queue(), ^{
 #ifdef HK_DEBUG_PROFILE
-    NSDate  *s, *e;
-    int32_t  time;
-    
-    s = [NSDate date];
+        NSDate  *s, *e;
+        int32_t  time;
+        
+        s = [NSDate date];
 #endif
-    
-    @synchronized (self)
-    {
-        NSDictionary                *ui = [notification userInfo];
-        NSSet                       *objects;
-        NSManagedObjectContext      *context = [notification object];
         
-        objects = [ui objectForKey:NSInsertedObjectsKey];
-        
-        [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
-            HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
+        @synchronized (self)
+        {
+            NSDictionary                *ui = [notification userInfo];
+            NSSet                       *objects;
+            NSManagedObjectContext      *context = [notification object];
             
-            handler( context, objects, HKDataStoreChangeTypeInsertion );
-        }];
+            if ( (objects = [ui objectForKey:NSInsertedObjectsKey]) != nil )
+            {   
+                [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
+                    HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
+                    
+                    handler( context, objects, HKDataStoreChangeTypeInsertion );
+                }];
+            }
+            
+            if ( (objects = [ui objectForKey:NSDeletedObjectsKey]) != nil )
+            {  
+                [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
+                    HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
+                    
+                    handler( context, objects, HKDataStoreChangeTypeDeletion );
+                }];
+            }
+            
+            if ( (objects = [ui objectForKey:NSUpdatedObjectsKey]) != nil )
+            {  
+                [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {            
+                    HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
+                    
+                    handler( context, objects, HKDataStoreChangeTypeUpdate );
+                }];
+            }
+        }
         
-        objects = [ui objectForKey:NSDeletedObjectsKey];
-        
-        [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
-            HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
-
-            handler( context, objects, HKDataStoreChangeTypeDeletion );
-        }];
-        
-        objects = [ui objectForKey:NSUpdatedObjectsKey];
-        
-        [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {            
-            HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
-
-            handler( context, objects, HKDataStoreChangeTypeUpdate );
-        }];
-    }
-
 #ifdef HK_DEBUG_PROFILE
-    e = [NSDate date];
-    
-    time = (int32_t) (([e timeIntervalSinceDate:s]) * 1e6);
-    
-    OSAtomicAdd32Barrier( time, &gHKDataStoreTimeTaken );
-    
-    NSLog(@"HKDataStore::managedObjectContextDidChange->Total time taken: %d usec", gHKDataStoreTimeTaken);
+        e = [NSDate date];
+        
+        time = (int32_t) (([e timeIntervalSinceDate:s]) * 1e6);
+        
+        OSAtomicAdd32Barrier( time, &gHKDataStoreTimeTaken );
+        
+        NSLog(@"HKDataStore::managedObjectContextDidChange->Total time taken: %d usec", gHKDataStoreTimeTaken);
 #endif
+    });
 }
 
 @end

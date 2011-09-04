@@ -40,7 +40,7 @@
 - (void)addStoreObserver:(id <HKStoreObserver>)storeObserver;
 - (void)removeStoreObserver:(id <HKStoreObserver>)storeObserver;
 
-- (void)lookupProducts:(NSSet *)products;
-- (void)purchaseProductsInSet:(NSSet *)products;
+- (void)lookup:(NSSet *)purchases;
+- (void)purchase:(NSSet *)purchases;
 
 @end

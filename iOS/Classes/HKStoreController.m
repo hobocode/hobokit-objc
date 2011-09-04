@@ -130,21 +130,21 @@ static HKStoreController *gHKStoreController = nil;
     [_observers removeObject:storeObserver];
 }
 
-- (void)lookupProducts:(NSSet *)products
+- (void)lookup:(NSSet *)purchases
 {
     SKProductsRequest   *request;
-    NSMutableSet        *identifiers = [NSMutableSet setWithCapacity:[products count]];
+    NSMutableSet        *identifiers = [NSMutableSet setWithCapacity:[purchases count]];
     NSString            *identifier;
     
-    for ( id <HKStorePurchase> product in products )
+    for ( id <HKStorePurchase> purchase in purchases )
     {
-        identifier = [product identifier];
+        identifier = [purchase identifier];
         
         if ( identifier )
         {
             if ( [_lookups objectForKey:identifier] == nil )
             {
-                [_lookups setObject:product forKey:identifier];
+                [_lookups setObject:purchase forKey:identifier];
                 
                 [identifiers addObject:identifier];
             }
@@ -159,21 +159,21 @@ static HKStoreController *gHKStoreController = nil;
     [request start];
 }
 
-- (void)purchaseProductsInSet:(NSSet *)products
+- (void)purchase:(NSSet *)purchases
 {
     SKPayment           *payment;
-    NSMutableSet        *identifiers = [NSMutableSet setWithCapacity:[products count]];
+    NSMutableSet        *identifiers = [NSMutableSet setWithCapacity:[purchases count]];
     NSString            *identifier;
     
-    for ( id <HKStorePurchase> product in products )
+    for ( id <HKStorePurchase> purchase in purchases )
     {
-        identifier = [product identifier];
+        identifier = [purchase identifier];
         
         if ( identifier )
         {
             if ( [_purchases objectForKey:identifier] == nil )
             {
-                [_purchases setObject:product forKey:identifier];
+                [_purchases setObject:purchase forKey:identifier];
                 
                 [identifiers addObject:identifier];
             }
@@ -192,13 +192,13 @@ static HKStoreController *gHKStoreController = nil;
 
 - (void)completeTransaction:(SKPaymentTransaction *)transaction
 {
-    id <HKStorePurchase> product = [_purchases objectForKey:transaction.payment.productIdentifier];
+    id <HKStorePurchase> purchase = [_purchases objectForKey:transaction.payment.productIdentifier];
     
     for ( id <HKStoreObserver> observer in _observers )
     {
-        if ( [observer respondsToSelector:@selector(storeController:didFinishPurchaseOfPurchase:)] )
+        if ( [observer respondsToSelector:@selector(storeController:didFinishPurchase:receipt:)] )
         {
-            [observer storeController:self didFinishPurchaseOfPurchase:product];
+            [observer storeController:self didFinishPurchase:purchase receipt:transaction.transactionReceipt];
         }
     }
     
@@ -209,13 +209,13 @@ static HKStoreController *gHKStoreController = nil;
 
 - (void)restoreTransaction:(SKPaymentTransaction *)transaction
 {
-    id <HKStorePurchase> product = [_purchases objectForKey:transaction.payment.productIdentifier];
+    id <HKStorePurchase> purchase = [_purchases objectForKey:transaction.payment.productIdentifier];
     
     for ( id <HKStoreObserver> observer in _observers )
     {
-        if ( [observer respondsToSelector:@selector(storeController:didFinishPurchaseOfPurchase:)] )
+        if ( [observer respondsToSelector:@selector(storeController:didFinishPurchase:receipt:)] )
         {
-            [observer storeController:self didFinishPurchaseOfPurchase:product];
+            [observer storeController:self didFinishPurchase:purchase receipt:transaction.transactionReceipt];
         }
     }
     
@@ -226,15 +226,15 @@ static HKStoreController *gHKStoreController = nil;
 
 - (void)failedTransaction:(SKPaymentTransaction *)transaction
 {
-    id <HKStorePurchase> product = [_purchases objectForKey:transaction.payment.productIdentifier];
+    id <HKStorePurchase> purchase = [_purchases objectForKey:transaction.payment.productIdentifier];
     
     if ( transaction.error.code != SKErrorPaymentCancelled )
     {
         for ( id <HKStoreObserver> observer in _observers )
         {
-            if ( [observer respondsToSelector:@selector(storeController:didFailPurchaseOfPurchase:error:)] )
+            if ( [observer respondsToSelector:@selector(storeController:didFailPurchase:error:)] )
             {
-                [observer storeController:self didFailPurchaseOfPurchase:product error:transaction.error];
+                [observer storeController:self didFailPurchase:purchase error:transaction.error];
             }
         }
     }
@@ -242,9 +242,9 @@ static HKStoreController *gHKStoreController = nil;
     {
         for ( id <HKStoreObserver> observer in _observers )
         {
-            if ( [observer respondsToSelector:@selector(storeController:didCancelPurchaseOfPurchase:)] )
+            if ( [observer respondsToSelector:@selector(storeController:didCancelPurchase:)] )
             {
-                [observer storeController:self didCancelPurchaseOfPurchase:product];
+                [observer storeController:self didCancelPurchase:purchase];
             }
         }
     }
@@ -276,22 +276,22 @@ static HKStoreController *gHKStoreController = nil;
 
 - (void)productsRequest:(SKProductsRequest *)request didReceiveResponse:(SKProductsResponse *)response
 {
-    id <HKStorePurchase> product;
+    id <HKStorePurchase> purchase;
     
     for ( SKProduct *storeProduct in response.products )
     {
-        product = [_lookups objectForKey:storeProduct.productIdentifier];
+        purchase = [_lookups objectForKey:storeProduct.productIdentifier];
         
-        if ( product )
+        if ( purchase )
         {
-            [product setPrice:[storeProduct price]];
-            [product setPriceLocale:[storeProduct priceLocale]];
+            [purchase setPrice:[storeProduct price]];
+            [purchase setPriceLocale:[storeProduct priceLocale]];
             
             for ( id <HKStoreObserver> observer in _observers )
             {
                 if ( [observer respondsToSelector:@selector(storeController:didFinishLookupOfPurchase:)] )
                 {
-                    [observer storeController:self didFinishLookupOfPurchase:product];
+                    [observer storeController:self didFinishLookupOfPurchase:purchase];
                 }
             }
             

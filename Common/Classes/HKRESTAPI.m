@@ -236,7 +236,14 @@ static HKRESTAPI *gHKRESTAPI = nil;
 
         if ( statusCode < 200 || statusCode >= 300 )
         {
-            error = [NSError errorWithDomain:HK_ERROR_DOMAIN code:HK_ERROR_CODE_WEB_API_ERROR userInfo:nil];
+            NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                                                request, @"request",
+                                                response, @"response",
+                                             nil];
+
+            if ( result ) [userInfo setValue:result forKey:@"responseBody"];
+
+            error = [NSError errorWithDomain:HK_ERROR_DOMAIN code:HK_ERROR_CODE_WEB_API_ERROR userInfo:userInfo];
 
             handler( nil, error, statusCode );
 

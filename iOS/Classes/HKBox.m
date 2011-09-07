@@ -24,6 +24,8 @@
 
 #import "HKBox.h"
 
+#import "SPDepends.h"
+
 @interface HKBox (HKPrivate)
 
 @end

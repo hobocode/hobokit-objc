@@ -30,7 +30,15 @@
 
 @implementation HKBox
 
-@synthesize type = _type, horizontalAlign = _horizontalAlign, verticalAlign = _verticalAlign;
++ (HKBox *)horizontalBoxWithFrame:(CGRect)frame
+{
+    return [[[HKBox alloc] initWithFrame:frame type:kHKBoxTypeHorizontal] autorelease];
+}
+
++ (HKBox *)verticalBoxWithFrame:(CGRect)frame
+{
+    return [[[HKBox alloc] initWithFrame:frame type:kHKBoxTypeVertical] autorelease];
+}
 
 - (id)initWithFrame:(CGRect)frame type:(HKBoxType)type
 {
@@ -47,6 +55,74 @@
     [super dealloc];
 }
 
+- (HKBoxType)type
+{
+    return _type;
+}
+
+- (void)setType:(HKBoxType)value
+{
+    _type = value;
+    
+    [self setNeedsLayout];
+}
+
+- (HKBoxHorizontalAlignment)horizontalAlignment
+{
+    return _horizontalAlignment;
+}
+
+- (void)setHorizontalAlignment:(HKBoxHorizontalAlignment)value
+{
+    _horizontalAlignment = value;
+    
+    [self setNeedsLayout];
+}
+
+- (HKBoxVerticalAlignment)verticalAlignment
+{
+    return _verticalAlignment;
+}
+
+- (void)setVerticalAlignment:(HKBoxVerticalAlignment)value
+{
+    _verticalAlignment = value;
+    
+    [self setNeedsLayout];
+}
+
+- (void)clean
+{
+    [[self subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
+}
+
+- (void)sizeToFit
+{
+    CGFloat wmax = 0.0f;
+    CGFloat hmax = 0.0f;
+    
+    for ( UIView *view in [self subviews] )
+    {
+        if ( [view isHidden] )
+            continue;
+        
+        switch ( _type )
+        {
+            case kHKBoxTypeHorizontal:
+                wmax += view.frame.size.width;
+                hmax = MAX( hmax, view.frame.size.height );
+                break;
+                
+            case kHKBoxTypeVertical:
+                wmax = MAX( wmax, view.frame.size.width );
+                hmax += view.frame.size.height;
+                break;
+        }
+    }
+    
+    self.frame = CGRectMake( self.frame.origin.x, self.frame.origin.y, wmax, hmax );
+}
+
 - (void)layoutSubviews
 {
     _update = YES;
@@ -59,6 +135,9 @@
     
     for ( UIView *view in [self subviews] )
     {
+        if ( [view isHidden] )
+            continue;
+        
         switch ( _type )
         {
             case kHKBoxTypeHorizontal:
@@ -77,7 +156,7 @@
     {
         case kHKBoxTypeHorizontal:
         {
-            switch ( _horizontalAlign )
+            switch ( _horizontalAlignment )
             {
                 case kHKBoxHorizontalAlignmentLeft:
                     xoffset = 0.0;
@@ -96,7 +175,7 @@
             
         case kHKBoxTypeVertical:
         {
-            switch ( _verticalAlign )
+            switch ( _verticalAlignment )
             {
                 case kHKBoxVerticalAlignmentTop:
                     yoffset = 0.0;
@@ -116,11 +195,14 @@
     
     for ( UIView *view in [self subviews] )
     {
+        if ( [view isHidden] )
+            continue;
+        
         switch ( _type )
         {
             case kHKBoxTypeHorizontal:
             {
-                switch ( _verticalAlign )
+                switch ( _verticalAlignment )
                 {
                     case kHKBoxVerticalAlignmentTop:
                         yoffset = 0.0;
@@ -143,7 +225,7 @@
                 
             case kHKBoxTypeVertical:
             {
-                switch ( _horizontalAlign )
+                switch ( _horizontalAlignment)
                 {
                     case kHKBoxHorizontalAlignmentLeft:
                         xoffset = 0.0;

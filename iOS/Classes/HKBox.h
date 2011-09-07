@@ -48,15 +48,20 @@ typedef enum
 {
 @private
     HKBoxType                   _type;
-    HKBoxHorizontalAlignment    _horizontalAlign;
-    HKBoxVerticalAlignment      _verticalAlign;
+    HKBoxHorizontalAlignment    _horizontalAlignment;
+    HKBoxVerticalAlignment      _verticalAlignment;
     BOOL                        _update;
 }
 
 @property (assign) HKBoxType type;
-@property (assign) HKBoxHorizontalAlignment horizontalAlign;
-@property (assign) HKBoxVerticalAlignment verticalAlign;
+@property (assign) HKBoxHorizontalAlignment horizontalAlignment;
+@property (assign) HKBoxVerticalAlignment verticalAlignment;
+
++ (HKBox *)horizontalBoxWithFrame:(CGRect)frame;
++ (HKBox *)verticalBoxWithFrame:(CGRect)frame;
 
 - (id)initWithFrame:(CGRect)frame type:(HKBoxType)type;
+
+- (void)clean;
 
 @end

@@ -249,7 +249,7 @@ static HKDataStore *gHKDataStore = nil;
             _chandlers = [[NSMutableSet alloc] init];
         }
         
-        [_chandlers addObject:handler];
+        [_chandlers addObject:Block_copy( handler )];
     }
 }
 

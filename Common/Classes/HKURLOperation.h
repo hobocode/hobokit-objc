@@ -24,40 +24,24 @@
 
 #import <Foundation/Foundation.h>
 
-#import <sqlite3.h>
+typedef void (^HKURLOperationCompletionHandler)( BOOL success, NSData *data, NSError *error );
+typedef void (^HKURLOperationProgressHandler)( double progress );
 
-#ifdef HK_DEBUG
-# define HK_DEBUG_CACHE
-#endif
-
-typedef void (^HKCacheManagerCompletionHandler)( BOOL success, NSString *identifier, NSError *error );
-typedef void (^HKCacheManagerProgressHandler)( double progress );
-
-@interface HKCacheManager : NSObject
+@interface HKURLOperation : NSOperation
 {
 @private
-	sqlite3			   *_database;
-	sqlite3_stmt	   *_select;
-	sqlite3_stmt	   *_insert;
-	sqlite3_stmt	   *_selectIdentifiers;
-	dispatch_queue_t	_queue;
-
-    NSString           *_path;
+    NSURL                           *_url;
+    NSURLConnection                 *_connection;
+    NSMutableData                   *_data;
+    NSError                         *_error;
+    HKURLOperationCompletionHandler  _completionHandler;
+    HKURLOperationProgressHandler    _progressHandler;
+    double                           _length;
+    BOOL                             _executing;
+    BOOL                             _finished;
+    BOOL                             _cancelled;
 }
 
-@property (nonatomic, retain) NSString *path;
-
-+ (HKCacheManager *)defaultManager;
-
-+ (HKCacheManager *)cacheManagerWithPath:(NSString *)path;
-- (id)initWithPath:(NSString *)path;
-
-- (NSData *)cachedDataWithIdentifier:(NSString *)identifier;
-- (void)cacheData:(NSData *)data withIdentifier:(NSString *)identifier;
-
-- (void)cacheURL:(NSURL *)url completionHandler:(HKCacheManagerCompletionHandler)handler;
-- (void)cacheURL:(NSURL *)url identifier:(NSString *)identifier progressHandler:(HKCacheManagerProgressHandler)progressHandler completionHandler:(HKCacheManagerCompletionHandler)completionHandler;
-
-- (NSArray *)allIdentifiers;
+- (id)initWithURL:(NSURL *)url progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler;
 
 @end

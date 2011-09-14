@@ -43,6 +43,7 @@ typedef void (^HKDataStoreChangeHandler)( NSManagedObjectContext *context, NSSet
     NSMutableSet                    *_bundles;
     NSMutableSet                    *_chandlers;
     BOOL                             _setup;
+    BOOL                             _change;
 }
 
 @property (readonly) NSManagedObjectContext *context;

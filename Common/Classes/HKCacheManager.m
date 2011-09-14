@@ -24,6 +24,8 @@
 
 #import "HKCacheManager.h"
 
+#import "HKURLOperation.h"
+
 #import "NSFileManager+HKApplicationSupport.h"
 #import "NSString+HKGenerator.h"
 
@@ -192,28 +194,48 @@ static HKCacheManager *gHKCacheManager = nil;
 
 - (void)cacheURL:(NSURL *)url completionHandler:(HKCacheManagerCompletionHandler)handler
 {
+    [self cacheURL:url identifier:nil progressHandler:nil completionHandler:handler];
+}
+
+- (void)cacheURL:(NSURL *)url identifier:(NSString *)identifier progressHandler:(HKCacheManagerProgressHandler)progressHandler completionHandler:(HKCacheManagerCompletionHandler)completionHandler
+{
     dispatch_queue_t cqueue = dispatch_get_current_queue();
-    
+
     dispatch_async( dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 ), ^ {
-        NSError *error = nil;
-        NSData  *data = [NSData dataWithContentsOfURL:url options:0 error:&error];
+        HKURLOperation *operation = [[HKURLOperation alloc] initWithURL:url
+                                                        progressHandler:^( double progress ) {
+                                                            if ( progressHandler != nil )
+                                                            {
+                                                                dispatch_async( cqueue, ^{
+                                                                    progressHandler( progress ); 
+                                                                });
+                                                            }
+                                                        }
+                                                      completionHandler:^( BOOL success, NSData *data, NSError *error ) {
+                                                          if ( success )
+                                                          {
+                                                              NSString *sid = identifier;
+                                                              
+                                                              if ( sid == nil )
+                                                                sid = [NSString randomBase36StringOfLength:12];
+                                                              
+                                                              [self cacheData:data withIdentifier:sid];
+                                                              
+                                                              dispatch_async( cqueue, ^{
+                                                                  completionHandler( YES, sid, nil );
+                                                              });
+                                                          }
+                                                          else
+                                                          {
+                                                              dispatch_async( cqueue, ^{
+                                                                  completionHandler( NO, nil, error );
+                                                              });
+                                                          }
+                                                      }];
         
-        if ( data != nil )
-        {
-            NSString *identifier = [NSString randomBase36StringOfLength:12];
-            
-            [self cacheData:data withIdentifier:identifier];
-            
-            dispatch_async( cqueue, ^{
-                handler( YES, identifier, nil );
-            });
-        }
-        else
-        {
-            dispatch_async( cqueue, ^{
-                handler( NO, nil, error );
-            });
-        }
+        [operation start];
+        [operation waitUntilFinished];
+        [operation release];
     });
 }
 

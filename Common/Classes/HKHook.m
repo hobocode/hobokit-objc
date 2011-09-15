@@ -29,36 +29,39 @@
 @interface HKHook : NSObject
 {
 @private
-    NSString        *_hook;
+    const char      *_hook;
+    dispatch_queue_t _queue;
     HKHookHandler    _handler;
     id               _registrant;
 }
 
-@property (copy) NSString *hook;
+@property (assign) const char *hook;
+@property (assign) dispatch_queue_t queue;
 @property (copy) HKHookHandler handler;
 @property (assign) id registrant;
 
-+ (HKHook *)hookWithHook:(NSString *)hook handler:(HKHookHandler)handler registrant:(id)registrant;
++ (HKHook *)hookWithHook:(const char *)hook handler:(HKHookHandler)handler queue:(dispatch_queue_t)queue registrant:(id)registrant;
 
-- (id)initWithHook:(NSString *)hook handler:(HKHookHandler)handler registrant:(id)registrant;
+- (id)initWithHook:(const char *)hook handler:(HKHookHandler)handler queue:(dispatch_queue_t)queue registrant:(id)registrant;
 
 @end
 
 @implementation HKHook
 
-+ (HKHook *)hookWithHook:(NSString *)hook handler:(HKHookHandler)handler registrant:(id)registrant
++ (HKHook *)hookWithHook:(const char *)hook handler:(HKHookHandler)handler queue:(dispatch_queue_t)queue registrant:(id)registrant
 {
-    return [[[HKHook alloc] initWithHook:hook handler:handler registrant:registrant] autorelease];
+    return [[[HKHook alloc] initWithHook:hook handler:handler queue:queue registrant:registrant] autorelease];
 }
 
 @synthesize hook = _hook, handler = _handler, registrant = _registrant;
 
-- (id)initWithHook:(NSString *)hook handler:(HKHookHandler)handler registrant:(id)registrant
+- (id)initWithHook:(const char *)hook handler:(HKHookHandler)handler queue:(dispatch_queue_t)queue registrant:(id)registrant
 {
     if ( self = [super init] )
     {
         self.hook = hook;
         self.handler = handler;
+        self.queue = queue;
         self.registrant = registrant;
     }
     
@@ -67,52 +70,83 @@
 
 - (void)dealloc
 {    
-    [_hook release]; _hook = nil;
     [_handler release]; _handler = nil;
+    
+    if ( _queue )
+    {
+        dispatch_release( _queue );
+    }
     [super dealloc];
+}
+
+- (dispatch_queue_t)queue
+{
+    return _queue;
+}
+
+- (void)setQueue:(dispatch_queue_t)value
+{
+    @synchronized( self )
+    {
+        if ( _queue != value )
+        {
+            if ( _queue )
+            {
+                dispatch_release( _queue );
+            }
+            
+            _queue = value;
+            
+            if ( _queue )
+            {
+                dispatch_retain( _queue );
+            }
+        }
+    }
 }
 
 @end
 
-void HKHookRegister ( NSString *hook, id object, id registrant, HKHookHandler handler )
+void HKHookRegister ( const char *hook, id object, id registrant, HKHookHandler handler )
 {
-    const char          *chook = [hook UTF8String];
-    NSMutableDictionary *hooks = objc_getAssociatedObject( object, chook );
-    HKHook              *h = [HKHook hookWithHook:hook handler:handler registrant:registrant];
-    NSString            *key = [NSString stringWithFormat:@"%@_%p", hook, registrant];
-    
+    NSMutableDictionary *hooks = objc_getAssociatedObject( object, hook );
+    HKHook              *h = [HKHook hookWithHook:hook handler:handler queue:dispatch_get_current_queue() registrant:registrant];
+    NSString            *key = [NSString stringWithFormat:@"%s_%p", hook, registrant];
+        
     if ( hooks == nil )
     {
         hooks = [NSMutableDictionary dictionary];
         
-        objc_setAssociatedObject( object, chook, hooks, OBJC_ASSOCIATION_RETAIN );
+        objc_setAssociatedObject( object, hook, hooks, OBJC_ASSOCIATION_RETAIN );
     }
-    
+        
     [hooks setObject:h forKey:key];
 }
 
-void HKHookUnregister ( NSString *hook, id object, id registrant )
+void HKHookUnregister ( const char *hook, id object, id registrant )
 {
-    const char          *chook = [hook UTF8String];
-    NSMutableDictionary *hooks = objc_getAssociatedObject( object, chook );
-    NSString            *key = [NSString stringWithFormat:@"%@_%p", hook, registrant];
-
+    NSMutableDictionary *hooks = objc_getAssociatedObject( object, hook );
+    NSString            *key = [NSString stringWithFormat:@"%s_%p", hook, registrant];
+        
     if ( hooks == nil )
         return;
     
     [hooks removeObjectForKey:key];
 }
 
-void HKHookBroadcast ( NSString *hook, id context, id broadcaster )
+void HKHookBroadcast ( const char *hook, id context, id broadcaster )
 {
-    const char *chook = [hook UTF8String];
-    NSArray    *hooks = [objc_getAssociatedObject( broadcaster, chook ) allValues];
-    
-    if ( hooks == nil )
+    NSDictionary    *hooks = objc_getAssociatedObject( broadcaster, hook );
+    NSArray         *hvalues = [hooks allValues];
+    HKHook          *h;
+            
+    if ( hvalues == nil )
         return;
     
-    for ( HKHook *h in hooks )
+    for ( h in hvalues )
     {
-        h.handler( context );
+        dispatch_async( h.queue, ^{
+            h.handler( context );
+        });
     }
 }

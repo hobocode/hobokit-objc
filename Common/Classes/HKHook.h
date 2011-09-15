@@ -26,16 +26,27 @@
 
 typedef void(^HKHookHandler)(id context);
 
-void HKHookRegister ( NSString *hook, id object, id registrant, HKHookHandler handler );
-void HKHookUnregister ( NSString *hook, id object, id registrant );
-void HKHookBroadcast ( NSString *hook, id context, id broadcaster );
+void HKHookRegister ( const char *hook, id object, id registrant, HKHookHandler handler );
+void HKHookUnregister ( const char *hook, id object, id registrant );
+void HKHookBroadcast ( const char *hook, id context, id broadcaster );
 
-#define $hook( object, hook, handler ) ({ \
-    HKHookRegister( hook, object, self, handler ); \
+#define $hook( hook, object, handler ) ({ \
+    __block __typeof(self) __hook_self = self; \
+    __block const char *__hook_hook = hook; \
+    __block id __hook_object = object; \
+    HKHookRegister( __hook_hook, __hook_object, __hook_self, handler ); \
 })
 
-#define $unhook( object, hook ) ({ \
+#define $uhook(...) ({ \
+    HKHookUnregister( __hook_hook, __hook_object, __hook_self ); \
+})
+
+#define $unhook( hook, object ) ({ \
     HKHookUnregister( hook, object, self ); \
+})
+
+#define $bcast( hook, context ) ({ \
+    HKHookBroadcast( hook, context, __hook_self ); \
 })
 
 #define $broadcast( hook, context ) ({ \

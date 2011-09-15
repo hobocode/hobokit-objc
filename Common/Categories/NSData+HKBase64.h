@@ -27,4 +27,6 @@
 - (NSString *)base64Encoding;
 - (NSString *)base64EncodingWithLineLength:(NSUInteger)lineLength;
 
+- (NSString *)binHex;
+
 @end

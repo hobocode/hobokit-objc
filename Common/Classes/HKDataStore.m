@@ -24,7 +24,7 @@
 
 #import "HKDataStore.h"
 
-#import "NSFileManager+HKApplicationSupport.h"
+#import "NSFileManager+HKDirectories.h"
 
 static HKDataStore *gHKDataStore = nil;
 

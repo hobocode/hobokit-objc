@@ -108,4 +108,18 @@ static char gEncodingTable[64] = {
 	return [NSString stringWithString:retval];
 }
 
+- (NSString *)binHex
+{
+	NSMutableString	*string = [NSMutableString string];
+	const char		*bytes = [self bytes];
+	unsigned		 length = [self length];
+	
+	for ( const char *p = bytes ; (p - bytes) < length ; p++ )
+	{		
+		[string appendFormat:@"%02x", (unsigned char) *p];
+	}
+	
+	return string;
+}
+
 @end

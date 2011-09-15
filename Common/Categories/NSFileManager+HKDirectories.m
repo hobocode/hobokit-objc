@@ -22,14 +22,27 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import "NSFileManager+HKApplicationSupport.h"
+#import "NSFileManager+HKDirectories.h"
 
-@implementation NSFileManager (HKApplicationSupport)
+@implementation NSFileManager (HKDirectories)
 
 + (NSString *)applicationSupportDirectory
 {
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
     NSArray     *paths = NSSearchPathForDirectoriesInDomains( NSDocumentDirectory, NSUserDomainMask, YES );
+#else
+    NSArray     *paths = NSSearchPathForDirectoriesInDomains( NSApplicationSupportDirectory, NSUserDomainMask, YES );
+#endif
+    NSString    *base = ( ([paths count] > 0) ? [paths objectAtIndex:0] : NSTemporaryDirectory() );
+    NSString    *appname = [[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleNameKey];
+    
+    return [base stringByAppendingPathComponent:appname];
+}
+
++ (NSString *)cacheDirectory
+{
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    NSArray     *paths = NSSearchPathForDirectoriesInDomains( NSCachesDirectory, NSUserDomainMask, YES );
 #else
     NSArray     *paths = NSSearchPathForDirectoriesInDomains( NSApplicationSupportDirectory, NSUserDomainMask, YES );
 #endif

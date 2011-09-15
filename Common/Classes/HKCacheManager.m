@@ -26,7 +26,7 @@
 
 #import "HKURLOperation.h"
 
-#import "NSFileManager+HKApplicationSupport.h"
+#import "NSFileManager+HKDirectories.h"
 #import "NSString+HKGenerator.h"
 
 static HKCacheManager *gHKCacheManager = nil;
@@ -95,7 +95,7 @@ static HKCacheManager *gHKCacheManager = nil;
     {
         if ( gHKCacheManager == nil )
         {
-            NSString *path = [[NSFileManager applicationSupportDirectory] stringByAppendingPathComponent:@"Cache.db"];
+            NSString *path = [[NSFileManager cacheDirectory] stringByAppendingPathComponent:@"Cache.db"];
 
             gHKCacheManager = [[self alloc] initWithPath:path];
         }

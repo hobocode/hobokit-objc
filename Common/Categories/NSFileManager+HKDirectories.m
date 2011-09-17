@@ -44,7 +44,7 @@
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
     NSArray     *paths = NSSearchPathForDirectoriesInDomains( NSCachesDirectory, NSUserDomainMask, YES );
 #else
-    NSArray     *paths = NSSearchPathForDirectoriesInDomains( NSApplicationSupportDirectory, NSUserDomainMask, YES );
+    NSArray     *paths = NSSearchPathForDirectoriesInDomains( NSCachesDirectory, NSUserDomainMask, YES );
 #endif
     NSString    *base = ( ([paths count] > 0) ? [paths objectAtIndex:0] : NSTemporaryDirectory() );
     NSString    *appname = [[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleNameKey];

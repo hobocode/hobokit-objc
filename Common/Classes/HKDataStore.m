@@ -117,18 +117,6 @@ static HKDataStore *gHKDataStore = nil;
     return gHKDataStore;
 }
 
-/*
-- (NSManagedObjectContext *)context
-{
-    if ( !_setup )
-    {
-        [self setup];
-    }
-
-    return _context;
-}
-*/
-
 - (void)addModelBundle:(NSBundle *)bundle
 {
     @synchronized (self)
@@ -253,6 +241,30 @@ static HKDataStore *gHKDataStore = nil;
     }
 }
 
+- (void)save
+{
+    if ( _setup == NO )
+    {
+        [self setup];
+    }
+    
+    if ( [_context hasChanges] )
+    {
+        NSError *error = nil;
+        
+        @try
+        {
+            if ( ![_context save:&error] )
+            {
+                
+            }
+        }
+        @catch (NSException *exception)
+        {
+        }
+    }
+}
+
 - (void)purgeData
 {
     if ( !_setup )
@@ -273,6 +285,32 @@ static HKDataStore *gHKDataStore = nil;
     _setup = NO;
 }
 
+- (NSManagedObjectContext *)detachNewContext
+{    
+    if ( !_setup )
+    {
+        [self setup];
+    }
+    
+    NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
+    
+    [context setPersistentStoreCoordinator:_coordinator];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(detachedManagedObjectContextDidSave:)
+                                                 name:NSManagedObjectContextDidSaveNotification
+                                               object:context];
+    
+    return context;
+}
+
+- (void)dismissDetachedContext:(NSManagedObjectContext *)context
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:NSManagedObjectContextDidSaveNotification
+                                                  object:context];
+    [context release];
+}
 
 #pragma mark HKPrivate API
 
@@ -332,20 +370,24 @@ static int32_t gHKDataStoreTimeTaken = 0;
 
 - (void)enableChangeHandlers
 {
+    NSLog(@"HKDataStore::enableChangeHandlers");
+
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(managedObjectContextDidChange:)
-                                                 name:NSManagedObjectContextObjectsDidChangeNotification
+                                             selector:@selector(managedObjectContextDidSave:)
+                                                 name:NSManagedObjectContextDidSaveNotification
                                                object:_context];
 }
 
 - (void)disableChangeHandlers
 {
+    NSLog(@"HKDataStore::disableChangeHandlers");
+    
     [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:NSManagedObjectContextObjectsDidChangeNotification
+                                                    name:NSManagedObjectContextDidSaveNotification
                                                   object:_context];
 }
 
-- (void)managedObjectContextDidChange:(NSNotification *)notification
+- (void)managedObjectContextDidSave:(NSNotification *)notification
 {
 #ifdef HK_DEBUG_PROFILE
     NSDate  *s, *e;
@@ -395,8 +437,13 @@ static int32_t gHKDataStoreTimeTaken = 0;
     
     OSAtomicAdd32Barrier( time, &gHKDataStoreTimeTaken );
     
-    NSLog(@"HKDataStore::managedObjectContextDidChange->Total time taken: %d usec", gHKDataStoreTimeTaken);
+    NSLog(@"HKDataStore::managedObjectContextDidSave->Total time taken: %d usec", gHKDataStoreTimeTaken);
 #endif
+}
+
+- (void)detachedManagedObjectContextDidSave:(NSNotification *)notification
+{
+    [_context mergeChangesFromContextDidSaveNotification:notification];
 }
 
 @end

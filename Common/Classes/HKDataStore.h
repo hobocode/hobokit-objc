@@ -62,7 +62,11 @@ typedef void (^HKDataStoreChangeHandler)( NSManagedObjectContext *context, NSSet
 - (void)synchronizedAndSaveWithContext:(HKDataStoreHandler)handler;
 - (void)asynchronizedAndSaveWithContext:(HKDataStoreHandler)handler;
 
+- (void)save;
 - (void)purgeData;
+
+- (NSManagedObjectContext *)detachNewContext;
+- (void)dismissDetachedContext:(NSManagedObjectContext *)context;
 
 - (void)registerChangeHandler:(HKDataStoreChangeHandler)handler;
 - (void)enableChangeHandlers;

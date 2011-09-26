@@ -241,6 +241,50 @@ static HKDataStore *gHKDataStore = nil;
     }
 }
 
+
+- (void)enableChangeHandlers
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(managedObjectContextDidChange:)
+                                                 name:NSManagedObjectContextObjectsDidChangeNotification
+                                               object:_context];
+}
+
+- (void)disableChangeHandlers
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:NSManagedObjectContextObjectsDidChangeNotification
+                                                  object:_context];
+}
+
+- (void)registerSaveHandler:(HKDataStoreSaveHandler)handler
+{
+    @synchronized (self)
+    {        
+        if ( _shandlers == nil )
+        {
+            _shandlers = [[NSMutableSet alloc] init];
+        }
+        
+        [_shandlers addObject:Block_copy( handler )];
+    }
+}
+
+- (void)enableSaveHandlers
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(managedObjectContextDidSave:)
+                                                 name:NSManagedObjectContextDidSaveNotification
+                                               object:_context];
+}
+
+- (void)disableSaveHandlers
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:NSManagedObjectContextDidSaveNotification
+                                                  object:_context];
+}
+
 - (void)save
 {
     if ( _setup == NO )
@@ -283,6 +327,16 @@ static HKDataStore *gHKDataStore = nil;
     [_coordinator release]; _coordinator = nil;
 
     _setup = NO;
+}
+
+- (void)setMergePolicy:(id)policy
+{
+    if ( !_setup )
+    {
+        [self setup];
+    }
+    
+    [_context setMergePolicy:policy];
 }
 
 - (NSManagedObjectContext *)detachNewContext
@@ -368,26 +422,7 @@ static HKDataStore *gHKDataStore = nil;
 static int32_t gHKDataStoreTimeTaken = 0;
 #endif
 
-- (void)enableChangeHandlers
-{
-    NSLog(@"HKDataStore::enableChangeHandlers");
-
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(managedObjectContextDidSave:)
-                                                 name:NSManagedObjectContextDidSaveNotification
-                                               object:_context];
-}
-
-- (void)disableChangeHandlers
-{
-    NSLog(@"HKDataStore::disableChangeHandlers");
-    
-    [[NSNotificationCenter defaultCenter] removeObserver:self
-                                                    name:NSManagedObjectContextDidSaveNotification
-                                                  object:_context];
-}
-
-- (void)managedObjectContextDidSave:(NSNotification *)notification
+- (void)managedObjectContextDidChange:(NSNotification *)notification
 {
 #ifdef HK_DEBUG_PROFILE
     NSDate  *s, *e;
@@ -423,6 +458,60 @@ static int32_t gHKDataStoreTimeTaken = 0;
         if ( (objects = [ui objectForKey:NSUpdatedObjectsKey]) != nil )
         {  
             [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {            
+                HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
+                
+                handler( context, objects, HKDataStoreChangeTypeUpdate );
+            }];
+        }
+    }
+    
+#ifdef HK_DEBUG_PROFILE
+    e = [NSDate date];
+    
+    time = (int32_t) (([e timeIntervalSinceDate:s]) * 1e6);
+    
+    OSAtomicAdd32Barrier( time, &gHKDataStoreTimeTaken );
+    
+    NSLog(@"HKDataStore::managedObjectContextDidChange->Total time taken: %d usec", gHKDataStoreTimeTaken);
+#endif
+}
+
+- (void)managedObjectContextDidSave:(NSNotification *)notification
+{
+#ifdef HK_DEBUG_PROFILE
+    NSDate  *s, *e;
+    int32_t  time;
+    
+    s = [NSDate date];
+#endif
+    
+    @synchronized (self)
+    {
+        NSDictionary                *ui = [notification userInfo];
+        NSSet                       *objects;
+        NSManagedObjectContext      *context = [notification object];
+        
+        if ( (objects = [ui objectForKey:NSInsertedObjectsKey]) != nil )
+        {   
+            [_shandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
+                HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
+                
+                handler( context, objects, HKDataStoreChangeTypeInsertion );
+            }];
+        }
+        
+        if ( (objects = [ui objectForKey:NSDeletedObjectsKey]) != nil )
+        {  
+            [_shandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
+                HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
+                
+                handler( context, objects, HKDataStoreChangeTypeDeletion );
+            }];
+        }
+        
+        if ( (objects = [ui objectForKey:NSUpdatedObjectsKey]) != nil )
+        {  
+            [_shandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {            
                 HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
                 
                 handler( context, objects, HKDataStoreChangeTypeUpdate );

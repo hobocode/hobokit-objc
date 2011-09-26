@@ -33,6 +33,7 @@ typedef enum
 
 typedef void (^HKDataStoreHandler)( NSManagedObjectContext *context );
 typedef void (^HKDataStoreChangeHandler)( NSManagedObjectContext *context, NSSet *objects, HKDataStoreChangeType type );
+typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *objects, HKDataStoreChangeType type );
 
 @interface HKDataStore : NSObject
 {
@@ -42,6 +43,7 @@ typedef void (^HKDataStoreChangeHandler)( NSManagedObjectContext *context, NSSet
     NSPersistentStoreCoordinator    *_coordinator;
     NSMutableSet                    *_bundles;
     NSMutableSet                    *_chandlers;
+    NSMutableSet                    *_shandlers;
     BOOL                             _setup;
     BOOL                             _change;
 }
@@ -65,11 +67,17 @@ typedef void (^HKDataStoreChangeHandler)( NSManagedObjectContext *context, NSSet
 - (void)save;
 - (void)purgeData;
 
+- (void)setMergePolicy:(id)policy;
+
 - (NSManagedObjectContext *)detachNewContext;
 - (void)dismissDetachedContext:(NSManagedObjectContext *)context;
 
 - (void)registerChangeHandler:(HKDataStoreChangeHandler)handler;
 - (void)enableChangeHandlers;
 - (void)disableChangeHandlers;
+
+- (void)registerSaveHandler:(HKDataStoreSaveHandler)handler;
+- (void)enableSaveHandlers;
+- (void)disableSaveHandlers;
 
 @end

@@ -80,4 +80,7 @@ typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *
 - (void)enableSaveHandlers;
 - (void)disableSaveHandlers;
 
+- (void)enableHandlers;
+- (void)disableHandlers;
+
 @end

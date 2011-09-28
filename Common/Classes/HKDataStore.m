@@ -285,6 +285,19 @@ static HKDataStore *gHKDataStore = nil;
                                                   object:_context];
 }
 
+- (void)enableHandlers
+{
+    [self enableChangeHandlers];
+    [self enableSaveHandlers];
+}
+
+- (void)disableHandlers
+{
+    [self disableChangeHandlers];
+    [self disableSaveHandlers];
+}
+
+
 - (void)save
 {
     if ( _setup == NO )
@@ -410,7 +423,7 @@ static HKDataStore *gHKDataStore = nil;
         
         [_context setPersistentStoreCoordinator:_coordinator];
 
-        [self enableChangeHandlers]; // enabled by default
+        [self enableHandlers]; // enabled by default
     }
         
     _setup = YES;

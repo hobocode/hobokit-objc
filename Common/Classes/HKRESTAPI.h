@@ -68,6 +68,7 @@ typedef void (^HKRESTAPIHandler)( id json, NSError *error, NSInteger statusCode 
 - (void)POSTMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
 
 - (void)setHTTPHeader:(NSString *)value forKey:(NSString *)key;
+- (NSString *)HTTPHeaderForKey:(NSString *)key;
 - (void)removeHTTPHeaderForKey:(NSString *)key;
 
 @end

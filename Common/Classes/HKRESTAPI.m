@@ -181,6 +181,11 @@ static HKRESTAPI *gHKRESTAPI = nil;
     [self.HTTPHeaders setObject:value forKey:key];
 }
 
+- (NSString *)HTTPHeaderForKey:(NSString *)key
+{
+    return [self.HTTPHeaders objectForKey:key];
+}
+
 - (void)removeHTTPHeaderForKey:(NSString *)key
 {
     [self.HTTPHeaders removeObjectForKey:key];

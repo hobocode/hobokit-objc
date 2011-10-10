@@ -28,6 +28,7 @@
 
 + (NSString *)UUIDString;
 + (NSString *)randomBase36StringOfLength:(NSUInteger)length;
++ (NSString *)randomBase16StringOfLength:(NSUInteger)length;
 
 - (NSString *)ASCIISlugString;
 

@@ -112,7 +112,7 @@ void HKHookRegister ( const char *hook, id object, id registrant, HKHookHandler 
     NSMutableDictionary *hooks = objc_getAssociatedObject( object, hook );
     HKHook              *h = [HKHook hookWithHook:hook handler:handler queue:dispatch_get_current_queue() registrant:registrant];
     NSString            *key = [NSString stringWithFormat:@"%s_%p", hook, registrant];
-        
+    
     if ( hooks == nil )
     {
         hooks = [NSMutableDictionary dictionary];

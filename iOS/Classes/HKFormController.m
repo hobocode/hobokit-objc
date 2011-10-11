@@ -81,7 +81,12 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
+
+    [self setupEnclosingNavigationController];
+}
+
+- (void)setupEnclosingNavigationController
+{    
     self.title = [self.definition objectForKey:@"title"];
     self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
                                                                                             target:self
@@ -178,13 +183,13 @@
     NSInteger   section = 0, row = 0;
     BOOL        filled = YES;
     
-    for ( NSDictionary *section in [self.definition objectForKey:@"sections"] )
+    for ( NSDictionary *sectionInfo in [self.definition objectForKey:@"sections"] )
     {
-        for ( NSDictionary *child in [section objectForKey:@"children"] )
+        for ( NSDictionary *childInfo in [sectionInfo objectForKey:@"children"] )
         {
-            if ( [[child objectForKey:@"required"] boolValue] )
+            if ( [[childInfo objectForKey:@"required"] boolValue] )
             {
-                NSString *key = [child objectForKey:@"key"];
+                NSString *key = [childInfo objectForKey:@"key"];
                 
                 if ( key )
                 {
@@ -192,7 +197,7 @@
                     
                     if ( value == nil )
                     {
-                        title = [child objectForKey:@"title"];
+                        title = [childInfo objectForKey:@"title"];
                         
                         filled = NO;
                         

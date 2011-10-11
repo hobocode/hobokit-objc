@@ -51,6 +51,8 @@
 
 - (id)initWithModel:(id)model definition:(NSDictionary *)definition;
 
+- (void)setupEnclosingNavigationController;
+
 - (IBAction)handleDone:(id)sender;
 
 @end

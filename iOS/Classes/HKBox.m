@@ -256,11 +256,16 @@
 - (void)didAddSubview:(UIView *)subview
 {
     $depends( @"view_frame", subview, @"frame", ^{
-        if ( _update )
-            return;
-        
         [selff setNeedsLayout];
     });
+}
+
+- (void)setNeedsLayout
+{
+    if ( _update )
+        return;
+    
+    [super setNeedsLayout];
 }
 
 - (void)willRemoveSubview:(UIView *)subview

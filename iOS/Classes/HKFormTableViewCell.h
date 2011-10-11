@@ -24,11 +24,11 @@
 
 #import <UIKit/UIKit.h>
 
-#define HK_FORM_TVC_FORM_LABEL_WIDTH						100.0
+#define HK_FORM_TVC_FORM_LABEL_WIDTH						125.0
 #define HK_FORM_TVC_FORM_LABEL_X_OFFSET						10.0
-#define HK_FORM_TVC_FORM_FIELD_X_OFFSET						130.0
+#define HK_FORM_TVC_FORM_FIELD_X_OFFSET						155.0
 #define HK_FORM_TVC_FORM_FIELD_Y_OFFSET						1.0
-#define HK_FORM_TVC_FORM_SEPARATOR_X_OFFSET					120.0
+#define HK_FORM_TVC_FORM_SEPARATOR_X_OFFSET					145.0
 
 @interface HKFormTableViewCell : UITableViewCell <UITextFieldDelegate>
 {

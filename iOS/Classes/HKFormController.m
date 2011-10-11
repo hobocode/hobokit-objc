@@ -33,7 +33,6 @@
 - (void)updateModel;
 - (void)ensureTableViewVisible;
 - (void)ensureTableViewCellVisible:(UITableViewCell *)tableViewCell;
-- (BOOL)ensureRequiredFieldsFilled;
 
 @end
 
@@ -223,8 +222,8 @@
     
     if ( filled == NO )
     {
-        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:[self localize:@"Required Field"]
-                                                            message:[NSString stringWithFormat:[self localize:@"%@ is required."], [self localize:title]]
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:[self localize:@"Required field"]
+                                                            message:[NSString stringWithFormat:[self localize:@"'%@' is required."], [self localize:title]]
                                                            delegate:self
                                                   cancelButtonTitle:[self localize:@"OK"]
                                                   otherButtonTitles:nil];

@@ -55,6 +55,8 @@
 
 - (NSString *)localize:(NSString *)string;
 
+- (BOOL)ensureRequiredFieldsFilled;
+
 - (IBAction)handleDone:(id)sender;
 
 @end

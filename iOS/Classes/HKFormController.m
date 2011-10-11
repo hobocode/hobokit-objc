@@ -83,6 +83,8 @@
     [super viewDidLoad];
 
     [self setupEnclosingNavigationController];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShowNotification:) name:UIKeyboardDidShowNotification object:nil];
 }
 
 - (void)setupEnclosingNavigationController
@@ -98,8 +100,11 @@
                                                                                                target:self
                                                                                                action:@selector(handleCancel:)] autorelease];
     }
-    
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShowNotification:) name:UIKeyboardDidShowNotification object:nil];
+}
+
+- (NSString *)localize:(NSString *)string
+{
+    return NSLocalizedString(string, @"");
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
@@ -218,10 +223,10 @@
     
     if ( filled == NO )
     {
-        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:NSLocalizedString( @"Required Field", @"" )
-                                                            message:[NSString stringWithFormat:NSLocalizedString( @"%@ is required.", @"" ), NSLocalizedString(title, @"")]
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:[self localize:@"Required Field"]
+                                                            message:[NSString stringWithFormat:[self localize:@"%@ is required."], [self localize:title]]
                                                            delegate:self
-                                                  cancelButtonTitle:NSLocalizedString( @"OK", @"" )
+                                                  cancelButtonTitle:[self localize:@"OK"]
                                                   otherButtonTitles:nil];
         NSInteger   tag = ( HK_FORM_TAG_OFFSET + section * 1000 + row );
 
@@ -310,18 +315,18 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{
+{    
     return [[[[self.definition objectForKey:@"sections"] objectAtIndex:section] objectForKey:@"children"] count];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-    return [[[self.definition objectForKey:@"sections"] objectAtIndex:section] objectForKey:@"header"];
+    return [self localize:[[[self.definition objectForKey:@"sections"] objectAtIndex:section] objectForKey:@"header"]];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section
 {
-    return [[[self.definition objectForKey:@"sections"] objectAtIndex:section] objectForKey:@"footer"];
+    return [self localize:[[[self.definition objectForKey:@"sections"] objectAtIndex:section] objectForKey:@"footer"]];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -338,9 +343,14 @@
     
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     
-    cell.formLabel.text = [NSLocalizedString([child objectForKey:@"title"], nil) lowercaseString];
+    cell.formLabel.text = [[self localize:[child objectForKey:@"title"]] lowercaseString];
     
-    cell.formField.placeholder = [NSString stringWithFormat:@"%@%@%@", NSLocalizedString([child objectForKey:@"placeholder"], @""), ( required ? @" " : @"" ), ( required ? NSLocalizedString(@"(Required)", @"Form required placeholder") : @"" )];
+    cell.formField.placeholder = [NSString stringWithFormat:@"%@%@%@", [self localize:[child objectForKey:@"placeholder"]], ( required ? @"" : @" " ), ( required ? @"" : [self localize:@"(optional)"] )];
+    
+    if ( [[child objectForKey:@"type"] isEqualToString:@"secure"] )
+    {
+        cell.formField.secureTextEntry = YES;
+    }
     
     if ( [[child objectForKey:@"keyboard"] isEqualToString:@"email"] )
     {

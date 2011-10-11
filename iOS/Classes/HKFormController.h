@@ -53,6 +53,8 @@
 
 - (void)setupEnclosingNavigationController;
 
+- (NSString *)localize:(NSString *)string;
+
 - (IBAction)handleDone:(id)sender;
 
 @end

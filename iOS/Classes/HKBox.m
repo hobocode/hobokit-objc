@@ -219,7 +219,7 @@
                         break;
                 }
                 
-                view.frame = CGRectMake( xoffset, yoffset, view.frame.size.width, view.frame.size.height );
+                view.frame = CGRectMake( roundf( xoffset ), roundf( yoffset ), roundf( view.frame.size.width ), roundf( view.frame.size.height ) );
             
                 xoffset += view.frame.size.width;
             }
@@ -242,7 +242,7 @@
                         break;
                 }
                 
-                view.frame = CGRectMake( xoffset, yoffset, view.frame.size.width, view.frame.size.height );
+                view.frame = CGRectMake( roundf( xoffset ), roundf( yoffset ), roundf( view.frame.size.width ), roundf( view.frame.size.height ) );
                 
                 yoffset += view.frame.size.height;
             }

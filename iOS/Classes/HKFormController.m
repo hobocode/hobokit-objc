@@ -224,7 +224,7 @@
     {
         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:[self localize:@"Required field"]
                                                             message:[NSString stringWithFormat:[self localize:@"'%@' is required."], [self localize:title]]
-                                                           delegate:self
+                                                           delegate:nil
                                                   cancelButtonTitle:[self localize:@"OK"]
                                                   otherButtonTitles:nil];
         NSInteger   tag = ( HK_FORM_TAG_OFFSET + section * 1000 + row );

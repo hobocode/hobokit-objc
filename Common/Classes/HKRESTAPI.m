@@ -145,7 +145,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
 
 - (void)POSTMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler
 {
-    NSData              *data;
+    NSData              *data = nil;
     NSString            *contentType = nil;
 
     if ( parameters != nil )

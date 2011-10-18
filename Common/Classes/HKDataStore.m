@@ -431,19 +431,8 @@ static HKDataStore *gHKDataStore = nil;
 
 #pragma mark Notifications
 
-#ifdef HK_DEBUG_PROFILE
-static int32_t gHKDataStoreTimeTaken = 0;
-#endif
-
 - (void)managedObjectContextDidChange:(NSNotification *)notification
 {
-#ifdef HK_DEBUG_PROFILE
-    NSDate  *s, *e;
-    int32_t  time;
-    
-    s = [NSDate date];
-#endif
-    
     @synchronized (self)
     {
         NSDictionary                *ui = [notification userInfo];
@@ -477,27 +466,10 @@ static int32_t gHKDataStoreTimeTaken = 0;
             }];
         }
     }
-    
-#ifdef HK_DEBUG_PROFILE
-    e = [NSDate date];
-    
-    time = (int32_t) (([e timeIntervalSinceDate:s]) * 1e6);
-    
-    OSAtomicAdd32Barrier( time, &gHKDataStoreTimeTaken );
-    
-    NSLog(@"HKDataStore::managedObjectContextDidChange->Total time taken: %d usec", gHKDataStoreTimeTaken);
-#endif
 }
 
 - (void)managedObjectContextDidSave:(NSNotification *)notification
 {
-#ifdef HK_DEBUG_PROFILE
-    NSDate  *s, *e;
-    int32_t  time;
-    
-    s = [NSDate date];
-#endif
-    
     @synchronized (self)
     {
         NSDictionary                *ui = [notification userInfo];
@@ -531,16 +503,6 @@ static int32_t gHKDataStoreTimeTaken = 0;
             }];
         }
     }
-    
-#ifdef HK_DEBUG_PROFILE
-    e = [NSDate date];
-    
-    time = (int32_t) (([e timeIntervalSinceDate:s]) * 1e6);
-    
-    OSAtomicAdd32Barrier( time, &gHKDataStoreTimeTaken );
-    
-    NSLog(@"HKDataStore::managedObjectContextDidSave->Total time taken: %d usec", gHKDataStoreTimeTaken);
-#endif
 }
 
 - (void)detachedManagedObjectContextDidSave:(NSNotification *)notification

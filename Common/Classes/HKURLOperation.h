@@ -24,14 +24,16 @@
 
 #import <Foundation/Foundation.h>
 
-typedef void (^HKURLOperationCompletionHandler)( BOOL success, NSData *data, NSError *error );
+typedef void (^HKURLOperationCompletionHandler)( BOOL success, NSURLResponse *response, NSData *data, NSError *error );
 typedef void (^HKURLOperationProgressHandler)( double progress );
 
 @interface HKURLOperation : NSOperation
 {
 @private
     NSURL                           *_url;
+    NSURLRequest                    *_request;
     NSURLConnection                 *_connection;
+    NSURLResponse                   *_response;
     NSMutableData                   *_data;
     NSError                         *_error;
     HKURLOperationCompletionHandler  _completionHandler;
@@ -43,5 +45,6 @@ typedef void (^HKURLOperationProgressHandler)( double progress );
 }
 
 - (id)initWithURL:(NSURL *)url progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler;
+- (id)initWithURLRequest:(NSURLRequest *)request progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler;
 
 @end

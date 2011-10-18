@@ -211,7 +211,7 @@ static HKCacheManager *gHKCacheManager = nil;
                                                                 });
                                                             }
                                                         }
-                                                      completionHandler:^( BOOL success, NSData *data, NSError *error ) {
+                                                      completionHandler:^( BOOL success, NSURLResponse *response, NSData *data, NSError *error ) {
                                                           if ( success )
                                                           {
                                                               NSString *sid = identifier;

@@ -25,12 +25,13 @@
 #import <Foundation/Foundation.h>
 
 #ifdef HK_DEBUG
-# define HK_DEBUG_REST_API
+// # define HK_DEBUG_REST_API
 #endif
 
 #define HK_ERROR_CODE_WEB_API_ERROR     3001
 
-typedef void (^HKRESTAPIHandler)( id json, NSError *error, NSInteger statusCode );
+typedef void (^HKRESTAPIProgressHandler)( double progress );
+typedef void (^HKRESTAPICompletionHandler)( id json, NSError *error, NSInteger statusCode );
 
 @interface HKRESTAPI : NSObject
 {
@@ -59,16 +60,54 @@ typedef void (^HKRESTAPIHandler)( id json, NSError *error, NSInteger statusCode 
 
 + (HKRESTAPI *)defaultAPI;
 
+- (void)POSTMethod:(NSString *)method
+          HTTPBody:(NSData *)body
+       contentType:(NSString *)contentType
+     synchronously:(BOOL)synchronously
+   progressHandler:(HKRESTAPIProgressHandler)progressHandler
+ completionHandler:(HKRESTAPICompletionHandler)completionHandler;
 
-- (void)POSTMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
-- (void)PUTMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
-- (void)DELETEMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
+- (void)PUTMethod:(NSString *)method
+         HTTPBody:(NSData *)body
+      contentType:(NSString *)contentType
+    synchronously:(BOOL)synchronously
+  progressHandler:(HKRESTAPIProgressHandler)progressHandler
+completionHandler:(HKRESTAPICompletionHandler)completionHandler;
 
-- (void)GETMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
-- (void)POSTMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
+- (void)DELETEMethod:(NSString *)method
+            HTTPBody:(NSData *)body
+         contentType:(NSString *)contentType
+       synchronously:(BOOL)synchronously
+     progressHandler:(HKRESTAPIProgressHandler)progressHandler
+   completionHandler:(HKRESTAPICompletionHandler)completionHandler;
+
+
+- (void)GETMethod:(NSString *)method
+       parameters:(NSDictionary *)parameters
+    synchronously:(BOOL)synchronously
+  progressHandler:(HKRESTAPIProgressHandler)progressHandler
+completionHandler:(HKRESTAPICompletionHandler)completionHandler;
+
+- (void)POSTMethod:(NSString *)method
+        parameters:(NSDictionary *)parameters
+     synchronously:(BOOL)synchronously
+   progressHandler:(HKRESTAPIProgressHandler)progressHandler
+ completionHandler:(HKRESTAPICompletionHandler)completionHandler;
 
 - (void)setHTTPHeader:(NSString *)value forKey:(NSString *)key;
 - (NSString *)HTTPHeaderForKey:(NSString *)key;
 - (void)removeHTTPHeaderForKey:(NSString *)key;
+
+@end
+
+@interface HKRESTAPI (HKLegacy)
+
+- (void)POSTMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)handler;
+- (void)PUTMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)handler;
+- (void)DELETEMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)handler;
+
+- (void)GETMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)handler;
+- (void)POSTMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)handler;
+
 
 @end

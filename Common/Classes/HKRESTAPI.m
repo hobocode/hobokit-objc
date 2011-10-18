@@ -24,6 +24,8 @@
 
 #import "HKRESTAPI.h"
 
+#import "HKURLOperation.h"
+
 #import "JSONKit.h"
 
 #import "NSData+HKBase64.h"
@@ -34,7 +36,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
 
 - (void)setup;
 
-- (void)performRequest:(NSURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler;
+- (void)performRequest:(NSURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)completionHandler progressHandler:(HKRESTAPIProgressHandler)progressHandler;
 - (NSURLRequest *)requestForMethod:(NSString *)method HTTPMethod:(NSString *)httpMethod HTTPBody:(NSData *)body contentType:(NSString *)contentType;
 - (NSString *)URLVariablesUsingParameters:(NSDictionary *)parameters;
 - (NSData *)formDataUsingParameters:(NSDictionary *)parameters;
@@ -125,60 +127,78 @@ static HKRESTAPI *gHKRESTAPI = nil;
     return gHKRESTAPI;
 }
 
-- (void)GETMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler
+- (void)POSTMethod:(NSString *)method
+          HTTPBody:(NSData *)body
+       contentType:(NSString *)contentType
+     synchronously:(BOOL)synchronously
+   progressHandler:(HKRESTAPIProgressHandler)progressHandler
+ completionHandler:(HKRESTAPICompletionHandler)completionHandler
+{
+    [self performRequest:[self requestForMethod:method HTTPMethod:@"POST" HTTPBody:body contentType:contentType] synchronously:synchronously completionHandler:completionHandler progressHandler:progressHandler];
+}
+
+- (void)PUTMethod:(NSString *)method
+         HTTPBody:(NSData *)body
+      contentType:(NSString *)contentType
+    synchronously:(BOOL)synchronously
+  progressHandler:(HKRESTAPIProgressHandler)progressHandler
+completionHandler:(HKRESTAPICompletionHandler)completionHandler
+{
+    [self performRequest:[self requestForMethod:method HTTPMethod:@"PUT" HTTPBody:body contentType:contentType] synchronously:synchronously completionHandler:completionHandler progressHandler:progressHandler];
+}
+
+- (void)DELETEMethod:(NSString *)method
+            HTTPBody:(NSData *)body
+         contentType:(NSString *)contentType
+       synchronously:(BOOL)synchronously
+     progressHandler:(HKRESTAPIProgressHandler)progressHandler
+   completionHandler:(HKRESTAPICompletionHandler)completionHandler
+{
+    [self performRequest:[self requestForMethod:method HTTPMethod:@"DELETE" HTTPBody:body contentType:contentType] synchronously:synchronously completionHandler:completionHandler progressHandler:progressHandler];
+}
+
+- (void)GETMethod:(NSString *)method
+       parameters:(NSDictionary *)parameters
+    synchronously:(BOOL)synchronously
+  progressHandler:(HKRESTAPIProgressHandler)progressHandler
+completionHandler:(HKRESTAPICompletionHandler)completionHandler
 {
     NSMutableString     *ustring = [NSMutableString stringWithString:method];
     NSString            *variables;
-
+    
     if ( parameters != nil )
     {
         variables = [self URLVariablesUsingParameters:parameters];
-
+        
         if ( variables )
         {
             [ustring appendFormat:@"?%@", variables];
         }
     }
-
-    [self performRequest:[self requestForMethod:ustring HTTPMethod:@"GET" HTTPBody:nil contentType:nil] synchronously:synchronously completionHandler:handler];
+    
+    [self performRequest:[self requestForMethod:ustring HTTPMethod:@"GET" HTTPBody:nil contentType:nil] synchronously:synchronously completionHandler:completionHandler progressHandler:progressHandler];
 }
 
-- (void)POSTMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler
+- (void)POSTMethod:(NSString *)method
+        parameters:(NSDictionary *)parameters
+     synchronously:(BOOL)synchronously
+   progressHandler:(HKRESTAPIProgressHandler)progressHandler
+ completionHandler:(HKRESTAPICompletionHandler)completionHandler
 {
     NSData              *data = nil;
     NSString            *contentType = nil;
-
+    
     if ( parameters != nil )
     {
         data = [self formDataUsingParameters:parameters];
-
+        
         if ( data != nil )
         {
             contentType = @"application/x-www-form-urlencoded";
         }
     }
-
-    [self performRequest:[self requestForMethod:method HTTPMethod:@"POST" HTTPBody:data contentType:contentType] synchronously:synchronously completionHandler:handler];
-}
-
-- (void)POSTMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler
-{
-    [self performRequest:[self requestForMethod:method HTTPMethod:@"POST" HTTPBody:body contentType:contentType] synchronously:synchronously completionHandler:handler];
-}
-
-- (void)PUTMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler
-{
-    [self performRequest:[self requestForMethod:method HTTPMethod:@"PUT" HTTPBody:body contentType:contentType] synchronously:synchronously completionHandler:handler];
-}
-
-- (void)DELETEMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler
-{
-    [self performRequest:[self requestForMethod:method HTTPMethod:@"DELETE" HTTPBody:body contentType:contentType] synchronously:synchronously completionHandler:handler];
-}
-
-- (void)setHTTPHeader:(NSString *)value forKey:(NSString *)key
-{
-    [self.HTTPHeaders setObject:value forKey:key];
+    
+    [self performRequest:[self requestForMethod:method HTTPMethod:@"POST" HTTPBody:data contentType:contentType] synchronously:synchronously completionHandler:completionHandler progressHandler:progressHandler];
 }
 
 - (NSString *)HTTPHeaderForKey:(NSString *)key
@@ -189,6 +209,38 @@ static HKRESTAPI *gHKRESTAPI = nil;
 - (void)removeHTTPHeaderForKey:(NSString *)key
 {
     [self.HTTPHeaders removeObjectForKey:key];
+}
+
+#pragma mark HKLegacy API
+
+- (void)GETMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)handler
+{
+    [self GETMethod:method parameters:parameters synchronously:synchronously progressHandler:nil completionHandler:handler];
+}
+
+- (void)POSTMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)handler
+{
+    [self POSTMethod:method parameters:parameters synchronously:synchronously progressHandler:nil completionHandler:handler];
+}
+
+- (void)POSTMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)handler
+{
+    [self POSTMethod:method HTTPBody:body contentType:contentType synchronously:synchronously progressHandler:nil completionHandler:handler];
+}
+
+- (void)PUTMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)handler
+{
+    [self PUTMethod:method HTTPBody:body contentType:contentType synchronously:synchronously progressHandler:nil completionHandler:handler];
+}
+
+- (void)DELETEMethod:(NSString *)method HTTPBody:(NSData *)body contentType:(NSString *)contentType synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)handler
+{
+    [self DELETEMethod:method HTTPBody:body contentType:contentType synchronously:synchronously progressHandler:nil completionHandler:handler];
+}
+
+- (void)setHTTPHeader:(NSString *)value forKey:(NSString *)key
+{
+    [self.HTTPHeaders setObject:value forKey:key];
 }
 
 #pragma mark HKPrivate API
@@ -203,19 +255,13 @@ static HKRESTAPI *gHKRESTAPI = nil;
     }
 }
 
-- (void)performRequest:(NSURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKRESTAPIHandler)handler
+- (void)performRequest:(NSURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)completionHandler progressHandler:(HKRESTAPIProgressHandler)progressHandler
 {
     id rhandler = ^{
-        id                   json = nil;
-        NSData              *result = nil;
-        NSError             *error = nil;
-        NSHTTPURLResponse   *response = nil;
-        JSONDecoder         *decoder = nil;
-        NSInteger            statusCode = 0;
 
         if ( request == nil )
         {
-            handler( nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil], statusCode );
+            completionHandler( nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil], -1 );
 
             return;
         }
@@ -223,64 +269,85 @@ static HKRESTAPI *gHKRESTAPI = nil;
 #ifdef HK_DEBUG_REST_API
         NSLog(@"HKRESTAPI->Requesting URL (%@): %@ (with body: %@)", [request HTTPMethod], [request URL], [[[NSString alloc] initWithData:[request HTTPBody] encoding:NSUTF8StringEncoding] autorelease]);
 #endif
-
-        result = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-
-        statusCode = [response statusCode];
-
-        if ( result == nil )
-        {            
-            handler( nil, error, statusCode );
-
-            return;
-        }
-
+        
+        HKURLOperation *operation = [[HKURLOperation alloc] initWithURLRequest:request
+                                                        progressHandler:^( double progress ) {
+                                                            progressHandler( progress );
+                                                        }
+                                                      completionHandler:^( BOOL success, NSURLResponse *response, NSData *data, NSError *error ) {
+                                                          id                   json = nil;
+                                                          JSONDecoder         *decoder = nil;
+                                                          NSInteger            statusCode = 0;
+                                                          
+                                                          if ( [response isKindOfClass:[NSHTTPURLResponse class]] )
+                                                          {
+                                                              NSHTTPURLResponse *hresponse = (NSHTTPURLResponse *) response;
+                                                            
+                                                              statusCode = [hresponse statusCode];
+                                                          }
+                                                          
+                                                          if ( success )
+                                                          {
 #ifdef HK_DEBUG_REST_API
-        NSLog(@"\r\n########## HKRESTAPI DATA from %@ (status code: %i) ##########\r\n%@\r\n########## ------------------------------------------- ##########\r\n", [request HTTPMethod], (int)statusCode, [[[NSString alloc] initWithData:result encoding:NSUTF8StringEncoding] autorelease]);
+                                                              NSLog(@"\r\n########## HKRESTAPI DATA from %@ (status code: %i) ##########\r\n%@\r\n########## ------------------------------------------- ##########\r\n", [request HTTPMethod], (int)statusCode, [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease]);
 #endif
-
-        if ( statusCode < 200 || statusCode >= 300 )
-        {
-            NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                                                request, @"request",
-                                                response, @"response",
-                                             nil];
-
-            if ( result ) [userInfo setValue:result forKey:@"responseBody"];
-
-            error = [NSError errorWithDomain:HK_ERROR_DOMAIN code:HK_ERROR_CODE_WEB_API_ERROR userInfo:userInfo];
-
-            handler( nil, error, statusCode );
-
-            return;
-        }
-
-        BOOL returnsResult = ( statusCode == 200 ||
-                               statusCode == 201 ||
-                               ( statusCode == 202 && [[request HTTPMethod] isEqualToString:@"PUT"] )
-                             );
-
-        if ( returnsResult )
-        {
-            NSArray *cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:[response allHeaderFields] forURL:[response URL]];
-            
-            [self setResponseCookies:cookies];
-            
-            decoder = [[JSONDecoder alloc] initWithParseOptions:JKParseOptionNone];
-
-            json = [decoder objectWithData:result error:&error];
-
-            [decoder release];
-        }
-
-        if ( json == nil )
-        {
-            handler( nil, returnsResult ? error : nil, statusCode );
-            
-            return;
-        }
-
-        handler( json, nil, statusCode );
+                                                              
+                                                              if ( statusCode < 200 || statusCode >= 300 )
+                                                              {
+                                                                  NSMutableDictionary *userInfo = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                                                                                                   request, @"request",
+                                                                                                   response, @"response",
+                                                                                                   nil];
+                                                                  
+                                                                  if ( data ) [userInfo setValue:data forKey:@"responseBody"];
+                                                                  
+                                                                  error = [NSError errorWithDomain:HK_ERROR_DOMAIN code:HK_ERROR_CODE_WEB_API_ERROR userInfo:userInfo];
+                                                                  
+                                                                  completionHandler( nil, error, statusCode );
+                                                                  
+                                                                  return;
+                                                              }
+                                                              
+                                                              BOOL returnsResult = ( statusCode == 200 ||
+                                                                                    statusCode == 201 ||
+                                                                                    ( statusCode == 202 && [[request HTTPMethod] isEqualToString:@"PUT"] )
+                                                                                    );
+                                                              
+                                                              if ( returnsResult )
+                                                              {
+                                                                  if ( [response isKindOfClass:[NSHTTPURLResponse class]] )
+                                                                  {
+                                                                      NSHTTPURLResponse *hresponse = (NSHTTPURLResponse *) response;
+                                                                      NSArray           *cookies = [NSHTTPCookie cookiesWithResponseHeaderFields:[hresponse allHeaderFields] forURL:[response URL]];
+                                                                      
+                                                                      [self setResponseCookies:cookies];
+                                                                  }
+                                                                  
+                                                                  decoder = [[JSONDecoder alloc] initWithParseOptions:JKParseOptionNone];
+                                                                  
+                                                                  json = [decoder objectWithData:data error:&error];
+                                                                  
+                                                                  [decoder release];
+                                                              }
+                                                              
+                                                              if ( json == nil )
+                                                              {
+                                                                  completionHandler( nil, returnsResult ? error : nil, statusCode );
+                                                                  
+                                                                  return;
+                                                              }
+                                                              
+                                                              completionHandler( json, nil, statusCode );
+                                                          }
+                                                          else
+                                                          {
+                                                              completionHandler( nil, error, statusCode );
+                                                          }
+                                                      }];
+        
+        [operation start];
+        [operation waitUntilFinished];
+        [operation release];
     };
 
     if ( synchronously )
@@ -296,7 +363,16 @@ static HKRESTAPI *gHKRESTAPI = nil;
 - (NSURLRequest *)requestForMethod:(NSString *)method HTTPMethod:(NSString *)httpMethod HTTPBody:(NSData *)body contentType:(NSString *)contentType
 {
     NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
-    NSString            *mstring = [NSString stringWithFormat:@"%@/%@/%@", self.APIBaseURL, self.APIVersion, method];
+    NSString            *mstring;
+    
+    if ( self.APIVersion != nil )
+    {
+        mstring = [NSString stringWithFormat:@"%@/%@/%@", self.APIBaseURL, self.APIVersion, method];
+    }
+    else
+    {
+        mstring = [NSString stringWithFormat:@"%@/%@", self.APIBaseURL, method];
+    }
 
     [request setCachePolicy:NSURLRequestUseProtocolCachePolicy];
     [request setTimeoutInterval:60.0];
@@ -357,7 +433,6 @@ static HKRESTAPI *gHKRESTAPI = nil;
 
     return request;
 }
-
 
 - (NSString *)URLVariablesUsingParameters:(NSDictionary *)parameters
 {

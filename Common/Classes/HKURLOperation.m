@@ -52,9 +52,30 @@
     return self;
 }
 
+- (id)initWithURLRequest:(NSURLRequest *)request progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler
+{
+    if ( (self = [super init]) )
+    {
+        _request = [request retain];
+        
+        if ( progressHandler != nil )
+        {
+            _progressHandler = Block_copy( progressHandler );
+        }
+        
+        if ( completionHandler != nil )
+        {
+            _completionHandler = Block_copy( completionHandler );
+        }
+    }
+    
+    return self;
+}
+
 - (void)dealloc
 {
     [_url release]; _url = nil;
+    [_request release]; _request = nil;
     [_connection release]; _connection = nil;
     [_data release]; _data = nil;
     [_error release]; _error = nil;
@@ -76,16 +97,23 @@
 
 - (void)main
 {
-    _connection = [[NSURLConnection alloc] initWithRequest:[NSURLRequest requestWithURL:_url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:60.0]
-                                                  delegate:self];
+    if ( _request == nil )
+    {
+        _request = [[NSURLRequest requestWithURL:_url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:60.0] retain];
+    }
+    
+    _connection = [[NSURLConnection alloc] initWithRequest:_request delegate:self];
     _data = [[NSMutableData alloc] init];
     
     while ( _connection != nil && [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]] )
     {
     }
     
-    _completionHandler( (_error == nil), (_error == nil ? [NSData dataWithData:_data] : nil), _error );
-        
+    if ( _completionHandler != nil )
+    {
+        _completionHandler( (_error == nil), [[_response copy] autorelease], (_error == nil ? [NSData dataWithData:_data] : nil), [[_error copy] autorelease] );
+    }
+    
     [self finish];
 }
 
@@ -181,6 +209,12 @@
     }
     
     [_data setLength:0];
+    
+    if ( _response != response )
+    {
+        [_response release];
+        _response = [response retain];
+    }
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
@@ -190,8 +224,11 @@
     if ( _length > 0.0 )
     {
         double dlength = (double) [_data length];
-                
-        _progressHandler( (dlength / _length) );
+        
+        if ( _progressHandler != nil )
+        {
+            _progressHandler( (dlength / _length) );
+        }
     }
 }
 

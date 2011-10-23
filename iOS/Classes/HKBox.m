@@ -54,6 +54,8 @@
 
 - (void)dealloc
 {
+    SPRemoveAssociatedDependencies(self);
+    
     [super dealloc];
 }
 
@@ -269,9 +271,7 @@
 }
 
 - (void)willRemoveSubview:(UIView *)subview
-{
-    SPRemoveAssociatedDependencies( subview );
-    
+{    
     [self setNeedsLayout];
 }
 

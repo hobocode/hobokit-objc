@@ -34,7 +34,7 @@ void HKHookBroadcast ( const char *hook, id context, id broadcaster );
     __block __typeof(self) __hook_self = self; \
     __block const char *__hook_hook = hook; \
     __block id __hook_object = object; \
-    HKHookRegister( __hook_hook, __hook_object, __hook_self, handler ); \
+    HKHookRegister( (__hook_hook), (__hook_object), (__hook_self), (handler) ); \
 })
 
 #define $uhook(...) ({ \

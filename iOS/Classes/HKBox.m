@@ -42,11 +42,31 @@
     return [[[HKBox alloc] initWithFrame:frame type:kHKBoxTypeVertical] autorelease];
 }
 
-- (id)initWithFrame:(CGRect)frame type:(HKBoxType)type
+- (id)initWithFrame:(CGRect)frame
 {
     if ( self = [super initWithFrame:frame] )
     {
+        _type = kHKBoxTypeHorizontal;
+    }
+    
+    return self;
+}
+
+- (id)initWithFrame:(CGRect)frame type:(HKBoxType)type
+{
+    if ( self = [self initWithFrame:frame] )
+    {
         _type = type;
+    }
+    
+    return self;
+}
+
+- (id)initWithCoder:(NSCoder *)aDecoder
+{
+    if ( self = [super initWithCoder:aDecoder] )
+    {
+        _type = kHKBoxTypeHorizontal;
     }
     
     return self;

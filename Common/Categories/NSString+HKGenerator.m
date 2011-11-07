@@ -73,6 +73,38 @@ static unsigned char gBase36[36] = {
     return retval;
 }
 
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
++ (NSString *)hexStringFromColor:(UIColor *)color
+{
+    CGFloat r, g, b;
+    
+    if ( ![color getRed:&r green:&g blue:&b alpha:NULL] )
+        return nil;
+    
+    return [NSString stringWithFormat:@"#%02x%02x%02x", ((int)(r * 255.0)), ((int)(g * 255.0)), ((int)(b * 255.0))];
+}
+#else
++ (NSString *)hexStringFromColor:(NSColor *)color
+{
+    NSString *cspace = [color colorSpaceName];
+    NSColor  *converted = color;
+    
+    if ( !([cspace isEqualToString:NSDeviceRGBColorSpace] || [cspace isEqualToString:NSCalibratedRGBColorSpace]) )
+    {
+        converted = [color colorUsingColorSpace:[NSColorSpace deviceRGBColorSpace]];
+    }
+    
+    if ( converted == nil )
+        return nil;
+    
+    CGFloat r, g, b;
+    
+    [converted getRed:&r green:&g blue:&b alpha:NULL];
+    
+    return [NSString stringWithFormat:@"#%02x%02x%02x", ((int)(r * 255.0)), ((int)(g * 255.0)), ((int)(b * 255.0))];
+}
+#endif
+
 - (NSString *)ASCIISlugString
 {
     NSData                  *ASCIIData = [self dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];

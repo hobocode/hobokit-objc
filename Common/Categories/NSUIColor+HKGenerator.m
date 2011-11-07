@@ -22,20 +22,46 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <Foundation/Foundation.h>
-
-@interface NSString (NSString_HKGenerator)
-
-+ (NSString *)UUIDString;
-+ (NSString *)randomBase36StringOfLength:(NSUInteger)length;
-+ (NSString *)randomBase16StringOfLength:(NSUInteger)length;
+#import "NSUIColor+HKGenerator.h"
 
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
-+ (NSString *)hexStringFromColor:(UIColor *)color;
-#else
-+ (NSString *)hexStringFromColor:(NSColor *)color;
-#endif
+@implementation UIColor (HKGenerator)
 
-- (NSString *)ASCIISlugString;
++ (UIColor *)colorFromHexString:(NSString *)string
+{
+    if ( string == nil )
+        return nil;
+    
+    int r, g, b;
+    int result = sscanf( [string UTF8String], "#%02x%02x%02x", &r, &g, &b );
+    
+    if ( result == 3 )
+    {
+        return [UIColor colorWithRed:(r / 255.0) green:(g / 255.0) blue:(b / 255.0) alpha:1.0];
+    }
+    
+    return nil;
+}
 
 @end
+#else
+@implementation NSColor (HKGenerator)
+
++ (NSColor *)colorFromHexString:(NSString *)string
+{
+    if ( string == nil )
+        return nil;
+    
+    int r, g, b;
+    int result = sscanf( [string UTF8String], "#%02x%02x%02x", &r, &g, &b );
+    
+    if ( result == 3 )
+    {
+        return [NSColor colorWithDeviceRed:(r / 255.0) green:(g / 255.0) blue:(b / 255.0) alpha:1.0];
+    }
+    
+    return nil;
+}
+
+@end
+#endif

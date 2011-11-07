@@ -22,20 +22,22 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <Foundation/Foundation.h>
-
-@interface NSString (NSString_HKGenerator)
-
-+ (NSString *)UUIDString;
-+ (NSString *)randomBase36StringOfLength:(NSUInteger)length;
-+ (NSString *)randomBase16StringOfLength:(NSUInteger)length;
-
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
-+ (NSString *)hexStringFromColor:(UIColor *)color;
-#else
-+ (NSString *)hexStringFromColor:(NSColor *)color;
-#endif
+@interface UIColor (HKGenerator)
 
-- (NSString *)ASCIISlugString;
++ (UIColor *)colorFromHexString:(NSString *)string;
 
 @end
+
+#define HK_COLOR_FROM_HEX(hex)  [UIColor colorFromHexString:(hex)]
+
+#else
+@interface NSColor (HKGenerator)
+
++ (NSColor *)colorFromHexString:(NSString *)string;
+
+@end
+
+#define HK_COLOR_FROM_HEX(hex)  [NSColor colorFromHexString:(hex)]
+
+#endif

@@ -22,33 +22,22 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <Foundation/Foundation.h>
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+@interface UIColor (HKGenerator)
 
-typedef void(^HKHookHandler)(id context);
++ (UIColor *)colorFromHexString:(NSString *)string;
 
-void HKHookRegister ( const char *hook, id object, id registrant, HKHookHandler handler );
-void HKHookUnregister ( const char *hook, id object, id registrant );
-void HKHookBroadcast ( const char *hook, id context, id broadcaster );
+@end
 
-#define $hook( hook, object, handler ) ({ \
-    __block __typeof(self) __hook_self = self; \
-    __block const char *__hook_hook = hook; \
-    __block id __hook_object = object; \
-    HKHookRegister( (__hook_hook), (__hook_object), (__hook_self), (handler) ); \
-})
+#define HK_COLOR_FROM_HEX(hex)  [UIColor colorFromHexString:(hex)]
 
-#define $uhook(...) ({ \
-    HKHookUnregister( __hook_hook, __hook_object, __hook_self ); \
-})
+#else
+@interface NSColor (HKGenerator)
 
-#define $unhook( hook, object ) ({ \
-    HKHookUnregister( hook, object, self ); \
-})
++ (NSColor *)colorFromHexString:(NSString *)string;
 
-#define $bcast( hook, context ) ({ \
-    HKHookBroadcast( hook, context, __hook_self ); \
-})
+@end
 
-#define $broadcast( hook, context ) ({ \
-    HKHookBroadcast( hook, context, self ); \
-})
+#define HK_COLOR_FROM_HEX(hex)  [NSColor colorFromHexString:(hex)]
+
+#endif

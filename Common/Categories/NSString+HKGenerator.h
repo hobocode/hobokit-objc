@@ -30,6 +30,12 @@
 + (NSString *)randomBase36StringOfLength:(NSUInteger)length;
 + (NSString *)randomBase16StringOfLength:(NSUInteger)length;
 
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
++ (NSString *)hexStringFromColor:(UIColor *)color;
+#else
++ (NSString *)hexStringFromColor:(NSColor *)color;
+#endif
+
 - (NSString *)ASCIISlugString;
 
 @end

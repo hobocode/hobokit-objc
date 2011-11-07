@@ -22,33 +22,46 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <Foundation/Foundation.h>
+#import "NSUIColor+HKGenerator.h"
 
-typedef void(^HKHookHandler)(id context);
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+@implementation UIColor (HKGenerator)
 
-void HKHookRegister ( const char *hook, id object, id registrant, HKHookHandler handler );
-void HKHookUnregister ( const char *hook, id object, id registrant );
-void HKHookBroadcast ( const char *hook, id context, id broadcaster );
++ (UIColor *)colorFromHexString:(NSString *)string
+{
+    if ( string == nil )
+        return nil;
+    
+    int r, g, b;
+    int result = sscanf( [string UTF8String], "#%02x%02x%02x", &r, &g, &b );
+    
+    if ( result == 3 )
+    {
+        return [UIColor colorWithRed:(r / 255.0) green:(g / 255.0) blue:(b / 255.0) alpha:1.0];
+    }
+    
+    return nil;
+}
 
-#define $hook( hook, object, handler ) ({ \
-    __block __typeof(self) __hook_self = self; \
-    __block const char *__hook_hook = hook; \
-    __block id __hook_object = object; \
-    HKHookRegister( (__hook_hook), (__hook_object), (__hook_self), (handler) ); \
-})
+@end
+#else
+@implementation NSColor (HKGenerator)
 
-#define $uhook(...) ({ \
-    HKHookUnregister( __hook_hook, __hook_object, __hook_self ); \
-})
++ (NSColor *)colorFromHexString:(NSString *)string
+{
+    if ( string == nil )
+        return nil;
+    
+    int r, g, b;
+    int result = sscanf( [string UTF8String], "#%02x%02x%02x", &r, &g, &b );
+    
+    if ( result == 3 )
+    {
+        return [NSColor colorWithDeviceRed:(r / 255.0) green:(g / 255.0) blue:(b / 255.0) alpha:1.0];
+    }
+    
+    return nil;
+}
 
-#define $unhook( hook, object ) ({ \
-    HKHookUnregister( hook, object, self ); \
-})
-
-#define $bcast( hook, context ) ({ \
-    HKHookBroadcast( hook, context, __hook_self ); \
-})
-
-#define $broadcast( hook, context ) ({ \
-    HKHookBroadcast( hook, context, self ); \
-})
+@end
+#endif

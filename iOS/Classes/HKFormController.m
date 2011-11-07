@@ -350,6 +350,10 @@
     {
         cell.formField.secureTextEntry = YES;
     }
+    else
+    {
+        cell.formField.secureTextEntry = NO;
+    }
     
     if ( [[child objectForKey:@"keyboard"] isEqualToString:@"email"] )
     {

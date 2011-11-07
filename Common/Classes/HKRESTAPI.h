@@ -25,7 +25,7 @@
 #import <Foundation/Foundation.h>
 
 #ifdef HK_DEBUG
-// # define HK_DEBUG_REST_API
+# define HK_DEBUG_REST_API
 #endif
 
 #define HK_ERROR_CODE_WEB_API_ERROR     3001

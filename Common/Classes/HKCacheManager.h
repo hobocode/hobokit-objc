@@ -30,6 +30,8 @@
 # define HK_DEBUG_CACHE
 #endif
 
+#define HK_CACHE_MEMORY_LIMIT   1048576
+
 typedef void (^HKCacheManagerCompletionHandler)( BOOL success, NSString *identifier, NSError *error );
 typedef void (^HKCacheManagerProgressHandler)( double progress );
 
@@ -42,14 +44,18 @@ typedef void (^HKCacheManagerProgressHandler)( double progress );
 	sqlite3_stmt	   *_selectIdentifiers;
 	dispatch_queue_t	_queue;
 
-    NSString           *_path;
+    NSString            *_path;
+    NSMutableDictionary *_fastcache;
+    NSMutableArray      *_fastcacheIdentifiers;
+    NSMutableArray      *_fastcacheSizes;
+    NSUInteger           _fastcacheSize;
 }
 
 @property (nonatomic, retain) NSString *path;
 
 + (HKCacheManager *)defaultManager;
-
 + (HKCacheManager *)cacheManagerWithPath:(NSString *)path;
+
 - (id)initWithPath:(NSString *)path;
 
 - (NSData *)cachedDataWithIdentifier:(NSString *)identifier;

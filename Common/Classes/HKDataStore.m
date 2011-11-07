@@ -133,6 +133,14 @@ static HKDataStore *gHKDataStore = nil;
     }
 }
 
+- (void)setDataStoreLocation:(HKDataStoreLocation)location
+{
+    @synchronized (self)
+    {
+        _location = location;
+    }
+}
+
 - (void)synchronizedWithContext:(HKDataStoreHandler)handler
 {
     if ( !_setup )
@@ -391,9 +399,26 @@ static HKDataStore *gHKDataStore = nil;
     if ( _coordinator == nil )
     {
         NSFileManager   *fm = [[[NSFileManager alloc] init] autorelease];
-        NSString        *dir = [NSFileManager applicationSupportDirectory];
-        NSURL           *url = [NSURL fileURLWithPath:[dir stringByAppendingPathComponent:@"Data.db"]];
+        NSString        *dir;
+        NSURL           *url;
         NSError         *error = nil;
+        
+        switch ( _location )
+        {
+            case HKDataStoreLocationDefault:
+                dir = [NSFileManager applicationSupportDirectory];
+                break;
+                
+            case HKDataStoreLocationCaches:
+                dir = [NSFileManager cacheDirectory];
+                break;
+                
+            default:
+                dir = [NSFileManager applicationSupportDirectory];
+                break;
+        }
+        
+        url = [NSURL fileURLWithPath:[dir stringByAppendingPathComponent:@"Data.db"]];
         
         if ( ![fm fileExistsAtPath:dir isDirectory:NULL] )
         {

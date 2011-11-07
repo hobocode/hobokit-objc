@@ -57,6 +57,11 @@ static HKCacheManager *gHKCacheManager = nil;
         [self release];
         return nil;
     }
+    
+    _fastcache = [[NSMutableDictionary alloc] initWithCapacity:10];
+    _fastcacheIdentifiers = [[NSMutableArray alloc] initWithCapacity:10];
+    _fastcacheSizes = [[NSMutableArray alloc] initWithCapacity:10];
+    _fastcacheSize = 0;
 
     return self;
 }
@@ -81,9 +86,11 @@ static HKCacheManager *gHKCacheManager = nil;
     {
         dispatch_release( _queue ); _queue = nil;
     }
-
+    
     [_path release];
-
+    [_fastcache release];
+    [_fastcacheIdentifiers release];
+    [_fastcacheSizes release];
     [super dealloc];
 }
 
@@ -111,47 +118,71 @@ static HKCacheManager *gHKCacheManager = nil;
     if ( identifier == nil )
         return nil;
     
-#ifdef HK_DEBUG_CACHE
-    NSDate *s, *e;
-    
-    s = [NSDate date];
-#endif
-    
     const char *cidentifier = [identifier UTF8String];
     const int cilength = (int)strlen( cidentifier );
     
     dispatch_sync( _queue, ^ {
-        sqlite3_bind_text( _select, 1, cidentifier, cilength, NULL );
-        
-        if ( sqlite3_step( _select ) == SQLITE_ROW )
+        if ( (retval = [_fastcache objectForKey:identifier]) == nil )
         {
-            if ( sqlite3_column_type( _select, 0 ) == SQLITE_BLOB )
+            int length = 0;
+            
+            sqlite3_bind_text( _select, 1, cidentifier, cilength, NULL );
+            
+            if ( sqlite3_step( _select ) == SQLITE_ROW )
             {
-                const void *bytes;
-                int length;
-                
-                bytes = sqlite3_column_blob( _select, 0 );
-                length = sqlite3_column_bytes( _select, 0 );
-                
-                if ( length > 0 )
+                if ( sqlite3_column_type( _select, 0 ) == SQLITE_BLOB )
                 {
+                    const void *bytes;
+                    
+                    bytes = sqlite3_column_blob( _select, 0 );
+                    length = sqlite3_column_bytes( _select, 0 );
+                    
+                    if ( length > 0 )
+                    {
 #ifdef HK_DEBUG_CACHE
-                    NSLog(@"HKCacheManager->Successfully loaded cache with identifier: %@", identifier);
+                        NSLog(@"HKCacheManager->Successfully loaded cache (size='%d') with identifier: %@", length, identifier);
 #endif
-                    retval = [NSData dataWithBytes:bytes length:length];
+                        retval = [NSData dataWithBytes:bytes length:length];
+                    }
                 }
             }
+            
+            sqlite3_reset( _select );
+            
+            if ( retval != nil && length < HK_CACHE_MEMORY_LIMIT )
+            {
+                NSString    *cident;
+                NSNumber    *csize;
+                NSUInteger   goal = (HK_CACHE_MEMORY_LIMIT - length);
+                
+                while ( _fastcacheSize > goal )
+                {
+                    cident = [_fastcacheIdentifiers objectAtIndex:0];
+                    csize = [_fastcacheSizes objectAtIndex:0];
+                    
+                    [_fastcache removeObjectForKey:cident];
+                    
+                    _fastcacheSize -= [csize unsignedIntegerValue];
+                    
+                    [_fastcacheIdentifiers removeObjectAtIndex:0];
+                    [_fastcacheSizes removeObjectAtIndex:0];
+                }
+                
+                [_fastcacheIdentifiers addObject:identifier];
+                [_fastcacheSizes addObject:[NSNumber numberWithInt:length]];
+                [_fastcache setObject:retval forKey:identifier];
+                
+                _fastcacheSize += length;
+            }
         }
-        
-        sqlite3_reset( _select );
-    });
-    
 #ifdef HK_DEBUG_CACHE
-    e = [NSDate date];
-    
-    NSLog(@"HKCacheManager->Last cache transaction (load): %f ms", [e timeIntervalSinceDate:s] * 1000.0f);
+        else
+        {
+            NSLog(@"HKCacheManager->Successfully loaded fastcache with identifier: %@", identifier);
+        }
 #endif
-    
+    });
+        
     return retval;
 }
 
@@ -194,7 +225,7 @@ static HKCacheManager *gHKCacheManager = nil;
 
 - (void)cacheURL:(NSURL *)url completionHandler:(HKCacheManagerCompletionHandler)handler
 {
-    [self cacheURL:url identifier:nil progressHandler:nil completionHandler:handler];
+    [self cacheURL:url identifier:[url absoluteString] progressHandler:nil completionHandler:handler];
 }
 
 - (void)cacheURL:(NSURL *)url identifier:(NSString *)identifier progressHandler:(HKCacheManagerProgressHandler)progressHandler completionHandler:(HKCacheManagerCompletionHandler)completionHandler
@@ -217,7 +248,9 @@ static HKCacheManager *gHKCacheManager = nil;
                                                               NSString *sid = identifier;
                                                               
                                                               if ( sid == nil )
-                                                                sid = [NSString randomBase36StringOfLength:12];
+                                                              {
+                                                                  sid = [NSString randomBase36StringOfLength:12];
+                                                              }
                                                               
                                                               [self cacheData:data withIdentifier:sid];
                                                               

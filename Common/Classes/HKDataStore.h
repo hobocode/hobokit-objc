@@ -31,6 +31,12 @@ typedef enum
     HKDataStoreChangeTypeUpdate = 2,
 } HKDataStoreChangeType;
 
+typedef enum
+{
+    HKDataStoreLocationDefault = 0,
+    HKDataStoreLocationCaches
+} HKDataStoreLocation;
+
 typedef void (^HKDataStoreHandler)( NSManagedObjectContext *context );
 typedef void (^HKDataStoreChangeHandler)( NSManagedObjectContext *context, NSSet *objects, HKDataStoreChangeType type );
 typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *objects, HKDataStoreChangeType type );
@@ -44,6 +50,7 @@ typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *
     NSMutableSet                    *_bundles;
     NSMutableSet                    *_chandlers;
     NSMutableSet                    *_shandlers;
+    HKDataStoreLocation              _location;
     BOOL                             _setup;
     BOOL                             _change;
 }
@@ -57,6 +64,7 @@ typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *
 + (HKDataStore *)defaultStore;
 
 - (void)addModelBundle:(NSBundle *)bundle;
+- (void)setDataStoreLocation:(HKDataStoreLocation)location;
 
 - (void)synchronizedWithContext:(HKDataStoreHandler)handler;
 - (void)asynchronizedWithContext:(HKDataStoreHandler)handler;

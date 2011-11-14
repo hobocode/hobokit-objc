@@ -26,12 +26,17 @@
 
 // taken from: http://cocoawithlove.com/2008/03/core-data-one-line-fetch.html
 
+@interface NSManagedObjectContext (HKEasyFetchPrivate)
+
+- (NSArray *)fetchObjectsForEntityName:(NSString *)entityName sortDescriptors:(NSArray *)sortDescriptors withPredicate:(id)stringOrPredicate arguments:(va_list)arguments;
+
+@end
+
 @implementation NSManagedObjectContext (HKEasyFetch)
 
-- (NSSet *)fetchObjectsForEntityName:(NSString *)newEntityName
-                       withPredicate:(id)stringOrPredicate, ...
+- (NSArray *)fetchObjectsForEntityName:(NSString *)entityName sortDescriptors:(NSArray *)sortDescriptors withPredicate:(id)stringOrPredicate arguments:(va_list)arguments
 {
-    NSEntityDescription *entity = [NSEntityDescription entityForName:newEntityName inManagedObjectContext:self];
+    NSEntityDescription *entity = [NSEntityDescription entityForName:entityName inManagedObjectContext:self];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
     
@@ -40,23 +45,25 @@
         NSPredicate *predicate;
         if ( [stringOrPredicate isKindOfClass:[NSString class]] )
         {
-            va_list variadicArguments;
-            va_start(variadicArguments, stringOrPredicate);
-            predicate = [NSPredicate predicateWithFormat:stringOrPredicate
-                                               arguments:variadicArguments];
-            va_end(variadicArguments);
+            predicate = [NSPredicate predicateWithFormat:stringOrPredicate arguments:arguments];
         }
         else
         {
             NSAssert2( [stringOrPredicate isKindOfClass:[NSPredicate class]],
                       @"Second parameter passed to %s is of unexpected class %s",
                       sel_getName(_cmd), object_getClassName(stringOrPredicate));
+
             predicate = (NSPredicate *)stringOrPredicate;
         }
 
         [request setPredicate:predicate];
     }
-    
+
+    if ( sortDescriptors )
+    {
+        [request setSortDescriptors:sortDescriptors];
+    }
+
     NSError *error = nil;
     NSArray *results = [self executeFetchRequest:request error:&error];
 
@@ -64,8 +71,28 @@
     {
         [NSException raise:NSGenericException format:[error description]];
     }
-    
+
+    return results;
+}
+
+- (NSSet *)fetchObjectsForEntityName:(NSString *)entityName withPredicate:(id)stringOrPredicate, ...
+{
+    va_list arguments;
+    va_start( arguments, stringOrPredicate );
+    NSArray *results = [self fetchObjectsForEntityName:entityName sortDescriptors:nil withPredicate:stringOrPredicate arguments:arguments];
+    va_end( arguments );
+
     return [NSSet setWithArray:results];
+}
+
+- (NSArray *)fetchObjectsForEntityName:(NSString *)entityName sortDescriptors:(NSArray *)sortDescriptors withPredicate:(id)stringOrPredicate, ...
+{
+    va_list arguments;
+    va_start( arguments, stringOrPredicate );
+    NSArray *results = [self fetchObjectsForEntityName:entityName sortDescriptors:nil withPredicate:stringOrPredicate arguments:arguments];
+    va_end( arguments );
+
+    return results;
 }
 
 @end

@@ -28,4 +28,6 @@
 
 - (NSSet *)fetchObjectsForEntityName:(NSString *)newEntityName withPredicate:(id)stringOrPredicate, ...;
 
+- (NSArray *)fetchObjectsForEntityName:(NSString *)entityName sortDescriptors:(NSArray *)sortDescriptors withPredicate:(id)stringOrPredicate, ...;
+
 @end

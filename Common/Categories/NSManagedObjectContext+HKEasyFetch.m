@@ -89,7 +89,7 @@
 {
     va_list arguments;
     va_start( arguments, stringOrPredicate );
-    NSArray *results = [self fetchObjectsForEntityName:entityName sortDescriptors:nil withPredicate:stringOrPredicate arguments:arguments];
+    NSArray *results = [self fetchObjectsForEntityName:entityName sortDescriptors:sortDescriptors withPredicate:stringOrPredicate arguments:arguments];
     va_end( arguments );
 
     return results;

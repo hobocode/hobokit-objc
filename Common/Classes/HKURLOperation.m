@@ -201,9 +201,18 @@
     
     if ( length == NSURLResponseUnknownLength )
     {
-        _length = -1.0;
+        if ( [response isKindOfClass:[NSHTTPURLResponse class]] )
+        {
+            NSString *lstring = [[(NSHTTPURLResponse *)response allHeaderFields] objectForKey:@"Content-length"];
+            
+            if ( lstring != nil )
+            {
+                length = [lstring longLongValue];
+            }
+        }
     }
-    else
+    
+    if ( length > 0 )
     {
         _length = (double) length;
     }
@@ -221,12 +230,12 @@
 {
 	[_data appendData:data];
 	
-    if ( _length > 0.0 )
+    if ( _progressHandler != nil )
     {
-        double dlength = (double) [_data length];
-        
-        if ( _progressHandler != nil )
+        if ( _length > 0.0 )
         {
+            double dlength = (double) [_data length];
+            
             _progressHandler( (dlength / _length) );
         }
     }

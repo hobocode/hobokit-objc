@@ -42,6 +42,7 @@ typedef void (^HKRESTAPICompletionHandler)( id json, NSError *error, NSInteger s
     NSString            *_APIPassword;
     NSMutableDictionary *_HTTPHeaders;
     dispatch_queue_t     _requests;
+    int32_t              _rcount;
 
     NSArray             *_responseCookies;
 }
@@ -97,6 +98,8 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler;
 - (void)setHTTPHeader:(NSString *)value forKey:(NSString *)key;
 - (NSString *)HTTPHeaderForKey:(NSString *)key;
 - (void)removeHTTPHeaderForKey:(NSString *)key;
+
+- (BOOL)hasPendingRequests;
 
 @end
 

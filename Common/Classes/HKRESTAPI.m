@@ -211,6 +211,11 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
     [self.HTTPHeaders removeObjectForKey:key];
 }
 
+- (BOOL)hasPendingRequests
+{
+    return (_rcount > 0);
+}
+
 #pragma mark HKLegacy API
 
 - (void)GETMethod:(NSString *)method parameters:(NSDictionary *)parameters synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)handler
@@ -348,7 +353,11 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
         [operation start];
         [operation waitUntilFinished];
         [operation release];
+        
+        OSAtomicDecrement32( &_rcount );
     };
+    
+    OSAtomicIncrement32( &_rcount );
 
     if ( synchronously )
     {

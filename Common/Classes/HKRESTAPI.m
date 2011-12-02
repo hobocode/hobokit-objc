@@ -315,7 +315,7 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
                                                       completionHandler:^( BOOL success, NSURLResponse *response, NSData *data, NSError *error ) {
                                                           id                   result = nil;
                                                           NSInteger            statusCode = 0;
-                                                          NSError             *oerror = nil;
+                                                          NSError             *oerror = error;
                                                           
                                                           if ( [response isKindOfClass:[NSHTTPURLResponse class]] )
                                                           {

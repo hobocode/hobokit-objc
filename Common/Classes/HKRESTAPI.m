@@ -302,7 +302,15 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
         }
 
 #ifdef HK_DEBUG_REST_API
-        NSLog(@"HKRESTAPI->Requesting URL (%@): %@ (with body: %@)", [request HTTPMethod], [request URL], [[[NSString alloc] initWithData:[request HTTPBody] encoding:NSUTF8StringEncoding] autorelease]);
+        NSData *ddata = [request HTTPBody];
+        NSString *dstring;
+        
+        if ( [ddata length] > 1024 )
+            dstring = [NSString stringWithFormat:@"[data length='%d']", [ddata length]];
+        else
+            dstring = [[[NSString alloc] initWithData:ddata encoding:NSUTF8StringEncoding] autorelease];
+        
+        NSLog(@"HKRESTAPI->Requesting URL (%@): %@ (with body: %@)", [request HTTPMethod], [request URL], dstring);
 #endif
         
         HKURLOperation *operation = [[HKURLOperation alloc] initWithURLRequest:request
@@ -517,7 +525,11 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
             
             if ( [data respondsToSelector:@selector(base64Encoding)] )
             {
-                [result appendFormat:@"%@%@=%@", (i == 0 ? @"" : @"&"), key, [[data base64Encoding] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+                NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+                
+                [result appendFormat:@"%@%@=%@", (i == 0 ? @"" : @"&"), key, [data base64Encoding]];
+                
+                [pool release];
             }
         }
 

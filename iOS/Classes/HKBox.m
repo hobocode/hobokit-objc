@@ -115,6 +115,25 @@
     [self setNeedsLayout];
 }
 
+- (UIImage *)backgroundImage
+{
+    return [[_backgroundImage retain] autorelease];
+}
+
+- (void)setBackgroundImage:(UIImage *)value
+{
+    @synchronized (self)
+    {
+        if ( _backgroundImage != value )
+        {
+            [_backgroundImage release];
+            _backgroundImage = [value retain];
+            
+            [self setNeedsLayout];
+        }
+    }
+}
+
 - (void)clean
 {
     [[self subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
@@ -269,6 +288,27 @@
                 yoffset += view.frame.size.height;
             }
                 break;
+        }
+    }
+    
+    if ( _backgroundImage != nil )
+    {
+        if ( _backgroundImageView == nil )
+        {
+            _backgroundImageView = [[[UIImageView alloc] initWithFrame:CGRectZero] autorelease];
+            _backgroundImageView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
+            
+            [self insertSubview:_backgroundImageView atIndex:0];
+        }
+        
+        _backgroundImageView.frame = bounds;
+        _backgroundImageView.image = _backgroundImage;
+    }
+    else
+    {
+        if ( _backgroundImageView != nil )
+        {
+            [_backgroundImageView removeFromSuperview]; _backgroundImageView = nil;
         }
     }
     

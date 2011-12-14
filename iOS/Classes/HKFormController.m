@@ -50,9 +50,18 @@
 
 @synthesize model = _model, definition = _definition, tableView = _tableView, currentTextField = _currentTextField, currentKeyboardFrame = _currentKeyboardFrame;
 
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+{
+    if ( self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil] )
+    {
+    }
+    
+    return self;
+}
+
 - (id)initWithModel:(id)model definition:(NSDictionary *)definition
 {
-    if ( self = [super initWithNibName:@"Form" bundle:nil] )
+    if ( self = [self initWithNibName:@"Form" bundle:nil] )
     {
         self.model = model;
         self.definition = definition;

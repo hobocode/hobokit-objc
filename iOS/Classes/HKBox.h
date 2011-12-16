@@ -50,12 +50,15 @@ typedef enum
     HKBoxType                   _type;
     HKBoxHorizontalAlignment    _horizontalAlignment;
     HKBoxVerticalAlignment      _verticalAlignment;
+    UIImage                    *_backgroundImage;
+    UIImageView                *_backgroundImageView;
     BOOL                        _update;
 }
 
 @property (assign) HKBoxType type;
 @property (assign) HKBoxHorizontalAlignment horizontalAlignment;
 @property (assign) HKBoxVerticalAlignment verticalAlignment;
+@property (retain) UIImage *backgroundImage;
 
 + (HKBox *)horizontalBoxWithFrame:(CGRect)frame;
 + (HKBox *)verticalBoxWithFrame:(CGRect)frame;

@@ -28,23 +28,33 @@
 # define HK_DEBUG_REST_API
 #endif
 
+@interface HKRESTAPIResultAdapter : NSObject
+
+- (id)resultForData:(NSData *)data error:(NSError **)error;
+
+@end
+
+@interface HKRESTAPIJSONResultAdapter : HKRESTAPIResultAdapter
+@end
+
 #define HK_ERROR_CODE_WEB_API_ERROR     3001
 
 typedef void (^HKRESTAPIProgressHandler)( double progress );
-typedef void (^HKRESTAPICompletionHandler)( id json, NSError *error, NSInteger statusCode );
+typedef void (^HKRESTAPICompletionHandler)( id result, NSError *error, NSInteger statusCode );
 
 @interface HKRESTAPI : NSObject
 {
 @private
-    NSString            *_APIBaseURL;
-    NSString            *_APIVersion;
-    NSString            *_APIUsername;
-    NSString            *_APIPassword;
-    NSMutableDictionary *_HTTPHeaders;
-    dispatch_queue_t     _requests;
-    int32_t              _rcount;
+    NSString                *_APIBaseURL;
+    NSString                *_APIVersion;
+    NSString                *_APIUsername;
+    NSString                *_APIPassword;
+    NSMutableDictionary     *_HTTPHeaders;
+    dispatch_queue_t         _requests;
+    int32_t                  _rcount;
 
-    NSArray             *_responseCookies;
+    NSArray                 *_responseCookies;
+    HKRESTAPIResultAdapter  *_resultAdapter;
 }
 
 @property (retain) NSString *APIBaseURL;
@@ -54,6 +64,7 @@ typedef void (^HKRESTAPICompletionHandler)( id json, NSError *error, NSInteger s
 @property (retain) NSMutableDictionary *HTTPHeaders;
 
 @property (retain) NSArray *responseCookies;
+@property (retain) HKRESTAPIResultAdapter *resultAdapter;
 
 @end
 

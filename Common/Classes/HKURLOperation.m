@@ -77,6 +77,7 @@
     [_url release]; _url = nil;
     [_request release]; _request = nil;
     [_connection release]; _connection = nil;
+    [_response release]; _response = nil;
     [_data release]; _data = nil;
     [_error release]; _error = nil;
     

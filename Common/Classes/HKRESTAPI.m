@@ -24,9 +24,38 @@
 
 #import "HKRESTAPI.h"
 
-#import "HKURLOperation.h"
+#import "NSData+HKBase64.h"
+
+#import <libkern/OSAtomic.h>
+
+@implementation HKRESTAPIResultAdapter
+
+- (id)resultForData:(NSData *)data error:(NSError **)error
+{
+    return nil;
+}
+
+@end
 
 #import "JSONKit.h"
+
+@implementation HKRESTAPIJSONResultAdapter
+
+- (id)resultForData:(NSData *)data error:(NSError **)error
+{
+    JSONDecoder *decoder = [[JSONDecoder alloc] initWithParseOptions:JKParseOptionNone];
+    id           retval;
+    
+    retval = [decoder objectWithData:data error:error];
+    
+    [decoder release];
+    
+    return retval;
+}
+
+@end
+
+#import "HKURLOperation.h"
 
 #import "NSData+HKBase64.h"
 
@@ -104,6 +133,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
 
     dispatch_release( _requests ); _requests = nil;
     [_HTTPHeaders release];
+    [_resultAdapter release];
 
     [super dealloc];
 }
@@ -111,7 +141,7 @@ static HKRESTAPI *gHKRESTAPI = nil;
 #pragma mark HKPublic API
 
 @synthesize APIBaseURL = _APIBaseURL, APIVersion = _APIVersion, APIUsername = _APIUsername, APIPassword = _APIPassword;
-@synthesize responseCookies = _responseCookies;
+@synthesize responseCookies = _responseCookies, resultAdapter = _resultAdapter;
 @synthesize HTTPHeaders = _HTTPHeaders;
 
 + (HKRESTAPI *)defaultAPI
@@ -272,17 +302,28 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
         }
 
 #ifdef HK_DEBUG_REST_API
-        NSLog(@"HKRESTAPI->Requesting URL (%@): %@ (with body: %@)", [request HTTPMethod], [request URL], [[[NSString alloc] initWithData:[request HTTPBody] encoding:NSUTF8StringEncoding] autorelease]);
+        NSData *ddata = [request HTTPBody];
+        NSString *dstring;
+        
+        if ( [ddata length] > 1024 )
+            dstring = [NSString stringWithFormat:@"[data length='%d']", [ddata length]];
+        else
+            dstring = [[[NSString alloc] initWithData:ddata encoding:NSUTF8StringEncoding] autorelease];
+        
+        NSLog(@"HKRESTAPI->Requesting URL (%@): %@ (with body: %@)", [request HTTPMethod], [request URL], dstring);
 #endif
         
         HKURLOperation *operation = [[HKURLOperation alloc] initWithURLRequest:request
                                                         progressHandler:^( double progress ) {
-                                                            progressHandler( progress );
+                                                            if ( progressHandler != nil )
+                                                            {
+                                                                progressHandler( progress );
+                                                            }
                                                         }
                                                       completionHandler:^( BOOL success, NSURLResponse *response, NSData *data, NSError *error ) {
-                                                          id                   json = nil;
-                                                          JSONDecoder         *decoder = nil;
+                                                          id                   result = nil;
                                                           NSInteger            statusCode = 0;
+                                                          NSError             *oerror = error;
                                                           
                                                           if ( [response isKindOfClass:[NSHTTPURLResponse class]] )
                                                           {
@@ -306,9 +347,9 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
                                                                   
                                                                   if ( data ) [userInfo setValue:data forKey:@"responseBody"];
                                                                   
-                                                                  error = [NSError errorWithDomain:HK_ERROR_DOMAIN code:HK_ERROR_CODE_WEB_API_ERROR userInfo:userInfo];
+                                                                  oerror = [NSError errorWithDomain:HK_ERROR_DOMAIN code:HK_ERROR_CODE_WEB_API_ERROR userInfo:userInfo];
                                                                   
-                                                                  completionHandler( nil, error, statusCode );
+                                                                  completionHandler( nil, oerror, statusCode );
                                                                   
                                                                   return;
                                                               }
@@ -328,25 +369,26 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
                                                                       [self setResponseCookies:cookies];
                                                                   }
                                                                   
-                                                                  decoder = [[JSONDecoder alloc] initWithParseOptions:JKParseOptionNone];
+                                                                  if ( _resultAdapter == nil )
+                                                                  {
+                                                                      _resultAdapter = [[HKRESTAPIJSONResultAdapter alloc] init];
+                                                                  }
                                                                   
-                                                                  json = [decoder objectWithData:data error:&error];
-                                                                  
-                                                                  [decoder release];
+                                                                  result = [_resultAdapter resultForData:data error:&oerror];
                                                               }
                                                               
-                                                              if ( json == nil )
+                                                              if ( result == nil )
                                                               {
-                                                                  completionHandler( nil, returnsResult ? error : nil, statusCode );
+                                                                  completionHandler( nil, returnsResult ? oerror : nil, statusCode );
                                                                   
                                                                   return;
                                                               }
                                                               
-                                                              completionHandler( json, nil, statusCode );
+                                                              completionHandler( result, nil, statusCode );
                                                           }
                                                           else
                                                           {
-                                                              completionHandler( nil, error, statusCode );
+                                                              completionHandler( nil, oerror, statusCode );
                                                           }
                                                       }];
         
@@ -476,6 +518,19 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
             NSNumber *number = (NSNumber *) value;
 
             [result appendFormat:@"%@%@=%d", (i == 0 ? @"" : @"&"), key, [number intValue]];
+        }
+        else if ( [value isKindOfClass:[NSData class]] )
+        {
+            NSData *data = (NSData *) value;
+            
+            if ( [data respondsToSelector:@selector(base64Encoding)] )
+            {
+                NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+                
+                [result appendFormat:@"%@%@=%@", (i == 0 ? @"" : @"&"), key, [data base64Encoding]];
+                
+                [pool release];
+            }
         }
 
     }

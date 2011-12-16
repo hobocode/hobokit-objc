@@ -22,35 +22,12 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import "HKImageNameToImageValueTransformer.h"
+#import <Cocoa/Cocoa.h>
 
-@implementation HKImageNameToImageValueTransformer
 
-+ (Class)transformedValueClass
-{
-    return [NSImage class];
-}
+@interface NSFileManager (HKGenerator)
 
-+ (BOOL)allowsReverseTransformation
-{
-    return NO;
-}
-
-- (id)transformedValue:(id)value
-{
-    if (value == nil || ![value isKindOfClass:[NSString class]] )
-    {
-        return nil;
-    }
-
-    NSImage *image = [NSImage imageNamed:value];
-	return image;
-}
-
-+ (void)initialize
-{
-    [[NSValueTransformer class] setValueTransformer:[self new] forName:NSStringFromClass([self class])];
-}
-
++ (NSString *)makeTemporaryFilename;
++ (NSString *)makeTemporaryDirectoryName;
 
 @end

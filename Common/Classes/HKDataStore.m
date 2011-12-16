@@ -330,6 +330,30 @@ static HKDataStore *gHKDataStore = nil;
     }
 }
 
+- (void)saveAll
+{
+    [self save];
+    
+    for ( NSManagedObjectContext *context in _detached )
+    {
+        if ( [context hasChanges] )
+        {
+            NSError *error = nil;
+            
+            @try
+            {
+                if ( ![context save:&error] )
+                {
+                    
+                }
+            }
+            @catch (NSException *exception)
+            {
+            }
+        }
+    }
+}
+
 - (void)purgeData
 {
     if ( !_setup )
@@ -360,6 +384,16 @@ static HKDataStore *gHKDataStore = nil;
     [_context setMergePolicy:policy];
 }
 
+- (void)setStalenessInterval:(NSTimeInterval)expiration
+{
+    if ( !_setup )
+    {
+        [self setup];
+    }
+    
+    [_context setStalenessInterval:expiration];
+}
+
 - (NSManagedObjectContext *)detachNewContext
 {    
     if ( !_setup )
@@ -367,14 +401,20 @@ static HKDataStore *gHKDataStore = nil;
         [self setup];
     }
     
+    if ( _detached == nil )
+        _detached = [[NSMutableSet alloc] init];
+    
     NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
     
     [context setPersistentStoreCoordinator:_coordinator];
+    [context setMergePolicy:[_context mergePolicy]];
     
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(detachedManagedObjectContextDidSave:)
                                                  name:NSManagedObjectContextDidSaveNotification
                                                object:context];
+    
+    [_detached addObject:context];
     
     return context;
 }
@@ -384,6 +424,9 @@ static HKDataStore *gHKDataStore = nil;
     [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:NSManagedObjectContextDidSaveNotification
                                                   object:context];
+    
+    [_detached removeObject:context];
+    
     [context release];
 }
 
@@ -531,7 +574,7 @@ static HKDataStore *gHKDataStore = nil;
 }
 
 - (void)detachedManagedObjectContextDidSave:(NSNotification *)notification
-{
+{    
     [_context mergeChangesFromContextDidSaveNotification:notification];
 }
 

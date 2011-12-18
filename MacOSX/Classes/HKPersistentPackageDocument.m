@@ -176,14 +176,14 @@
 
     if ( success )
     {
-        success = [self updateFileWrapper:filewrapper atPath:[inAbsoluteURL path] error:outError];
-        [filewrapper writeToFile:filePath atomically:NO updateFilenames:NO];
+        // Save the Core Data portion of the document.
+        success = [[self managedObjectContext] save:outError];
     }
 
     if ( success )
     {
-        // Save the Core Data portion of the document.
-        success = [[self managedObjectContext] save:outError];
+        success = [self updateFileWrapper:filewrapper atPath:[inAbsoluteURL path] error:outError];
+        [filewrapper writeToFile:filePath atomically:NO updateFilenames:NO];
     }
 
     if ( success )

@@ -251,7 +251,7 @@
         [_error release];
         _error = [error retain];
     }
-    
+
     [_connection release]; _connection = nil;
 }
 
@@ -259,7 +259,16 @@
 {
     if ( _authenticationChallengeHandler )
     {
-        _authenticationChallengeHandler( challenge );
+        BOOL tryAgain = _authenticationChallengeHandler( challenge );
+        if ( !tryAgain )
+        {
+            _error = [[NSError alloc] initWithDomain:HK_ERROR_DOMAIN code:HK_ERROR_CODE_URL_OPERATION_NOT_AUTHENTICATED_CODE userInfo:nil];
+            [_connection release]; _connection = nil;
+        }
+    }
+    else
+    {
+        [_connection release]; _connection = nil;
     }
 }
 

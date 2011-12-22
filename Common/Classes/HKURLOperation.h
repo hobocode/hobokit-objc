@@ -26,7 +26,9 @@
 
 typedef void (^HKURLOperationCompletionHandler)( BOOL success, NSURLResponse *response, NSData *data, NSError *error );
 typedef void (^HKURLOperationProgressHandler)( double progress );
-typedef void (^HKURLOperationAuthenticationChallengeHandler)( NSURLAuthenticationChallenge *challenge );
+typedef BOOL (^HKURLOperationAuthenticationChallengeHandler)( NSURLAuthenticationChallenge *challenge );
+
+#define HK_ERROR_CODE_URL_OPERATION_NOT_AUTHENTICATED_CODE     4001
 
 @interface HKURLOperation : NSOperation
 {

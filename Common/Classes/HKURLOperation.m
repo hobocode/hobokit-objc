@@ -122,8 +122,8 @@
 
 - (void)start
 {
-	if ( [self isCancelled] )
-	{
+    if ( [self isCancelled] )
+    {
         [self willChangeValueForKey:@"isFinished"];
 
         _finished = YES;
@@ -131,14 +131,14 @@
         [self didChangeValueForKey:@"isFinished"];
 
         return;
-	}
-	
+    }
+
 	[self willChangeValueForKey:@"isExecuting"];
-    
+
     _executing = YES;
 
     [NSThread detachNewThreadSelector:@selector(main) toTarget:self withObject:nil];
-        
+
     [self didChangeValueForKey:@"isExecuting"];
 }
 

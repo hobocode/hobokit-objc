@@ -32,6 +32,8 @@
 
 @implementation HKURLOperation
 
+@synthesize useCredentialStorage = _useCredentialStorage;
+
 - (id)initWithURL:(NSURL *)url progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler authenticationChallengeHandler:(HKURLOperationAuthenticationChallengeHandler)authHandler
 {
     NSURLRequest *request = [[NSURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:60.0] retain];
@@ -59,6 +61,8 @@
         {
             _authenticationChallengeHandler = Block_copy( authHandler );
         }
+
+        self.useCredentialStorage = YES;
     }
     
     return self;
@@ -270,6 +274,11 @@
     {
         [_connection release]; _connection = nil;
     }
+}
+
+- (BOOL)connectionShouldUseCredentialStorage:(NSURLConnection *)connection
+{
+    return self.useCredentialStorage;
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection

@@ -47,7 +47,11 @@ typedef BOOL (^HKURLOperationAuthenticationChallengeHandler)( NSURLAuthenticatio
     BOOL            _executing;
     BOOL            _finished;
     BOOL            _cancelled;
+
+    BOOL            _useCredentialStorage;
 }
+
+@property (nonatomic, assign) BOOL useCredentialStorage;
 
 - (id)initWithURL:(NSURL *)url progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler;
 - (id)initWithURLRequest:(NSURLRequest *)request progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler;

@@ -532,7 +532,28 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
                 [pool release];
             }
         }
-
+        else if ( [value isKindOfClass:[NSArray class]] )
+        {
+            BOOL first = YES;
+            
+            for ( id element in value )
+            {
+                if ( [value isKindOfClass:[NSString class]] )
+                {
+                    NSString *string = (NSString *) element;
+                    
+                    [result appendFormat:@"%@%@[]=%@", (first ? @"" : @"&"), key, [string stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+                }
+                else if ( [element isKindOfClass:[NSNumber class]] )
+                {
+                    NSNumber *number = (NSNumber *) element;
+                    
+                    [result appendFormat:@"%@%@[]=%d", (first ? @"" : @"&"), key, [number intValue]];
+                }
+                
+                first = NO;
+            }
+        }
     }
 
     return [NSString stringWithString:result];

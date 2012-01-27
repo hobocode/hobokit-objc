@@ -481,6 +481,19 @@ static HKDataStore *gHKDataStore = nil;
 #ifdef HK_DEBUG_ERRORS
             NSLog(@"HKDataStore::setup->Error: '%@'", error);
 #endif
+            [_coordinator release]; _coordinator = nil;
+            
+#ifdef HK_DATA_STORE_DELETE_FAULTY_STORE
+#warning "HK_DATA_STORE_DELETE_FAULTY_STORE set"
+            
+            if ( [error code] == NSPersistentStoreIncompatibleVersionHashError )
+            {
+                [fm removeItemAtURL:url error:&error];
+                
+                [self setup];
+                return;
+            }
+#endif
             return;
         }
     }

@@ -324,18 +324,29 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
                                                           id                   result = nil;
                                                           NSInteger            statusCode = 0;
                                                           NSError             *oerror = error;
-                                                          
+#ifdef HK_DEBUG_REST_API_HTTP_HEADERS
+                                                          NSDictionary        *headers = nil;
+#endif
                                                           if ( [response isKindOfClass:[NSHTTPURLResponse class]] )
                                                           {
                                                               NSHTTPURLResponse *hresponse = (NSHTTPURLResponse *) response;
                                                             
                                                               statusCode = [hresponse statusCode];
+#ifdef HK_DEBUG_REST_API_HTTP_HEADERS
+                                                              headers = [hresponse allHeaderFields];
+#endif
                                                           }
                                                           
                                                           if ( success )
                                                           {
 #ifdef HK_DEBUG_REST_API
                                                               NSLog(@"\r\n########## HKRESTAPI DATA from %@ (status code: %i) ##########\r\n%@\r\n########## ------------------------------------------- ##########\r\n", [request HTTPMethod], (int)statusCode, [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease]);
+# ifdef HK_DEBUG_REST_API_HTTP_HEADERS
+                                                              if ( headers != nil )
+                                                              {
+                                                                  NSLog(@"\r\n########## HKRESTAPI HEADERS ##########\r\n%@\r\n########## ------------------------------------------- ##########\r\n", headers );
+                                                              }
+# endif
 #endif
                                                               
                                                               if ( statusCode < 200 || statusCode >= 300 )

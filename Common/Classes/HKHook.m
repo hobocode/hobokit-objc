@@ -107,9 +107,11 @@
 
 @end
 
+static void *gHKHookKey = nil;
+
 void HKHookRegister ( const char *hook, id object, id registrant, HKHookHandler handler )
 {
-    NSMutableDictionary *hooks = objc_getAssociatedObject( object, hook );
+    NSMutableDictionary *hooks = objc_getAssociatedObject( object, &gHKHookKey );
     HKHook              *h = [HKHook hookWithHook:hook handler:handler queue:dispatch_get_current_queue() registrant:registrant];
     NSString            *key = [NSString stringWithFormat:@"%s_%p", hook, registrant];
     
@@ -117,7 +119,7 @@ void HKHookRegister ( const char *hook, id object, id registrant, HKHookHandler 
     {
         hooks = [NSMutableDictionary dictionary];
         
-        objc_setAssociatedObject( object, hook, hooks, OBJC_ASSOCIATION_RETAIN );
+        objc_setAssociatedObject( object, &gHKHookKey, hooks, OBJC_ASSOCIATION_RETAIN );
     }
         
     [hooks setObject:h forKey:key];
@@ -125,7 +127,7 @@ void HKHookRegister ( const char *hook, id object, id registrant, HKHookHandler 
 
 void HKHookUnregister ( const char *hook, id object, id registrant )
 {
-    NSMutableDictionary *hooks = objc_getAssociatedObject( object, hook );
+    NSMutableDictionary *hooks = objc_getAssociatedObject( object, &gHKHookKey );
     NSString            *key = [NSString stringWithFormat:@"%s_%p", hook, registrant];
         
     if ( hooks == nil )
@@ -136,7 +138,7 @@ void HKHookUnregister ( const char *hook, id object, id registrant )
 
 void HKHookBroadcast ( const char *hook, id context, id broadcaster )
 {
-    NSDictionary    *hooks = objc_getAssociatedObject( broadcaster, hook );
+    NSDictionary    *hooks = objc_getAssociatedObject( broadcaster, &gHKHookKey  );
     NSArray         *hvalues = [hooks allValues];
     HKHook          *h;
             

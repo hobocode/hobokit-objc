@@ -206,19 +206,6 @@
 {
     long long length = [response expectedContentLength];
     
-    if ( length == NSURLResponseUnknownLength )
-    {
-        if ( [response isKindOfClass:[NSHTTPURLResponse class]] )
-        {
-            NSString *lstring = [[(NSHTTPURLResponse *)response allHeaderFields] objectForKey:@"Content-length"];
-            
-            if ( lstring != nil )
-            {
-                length = [lstring longLongValue];
-            }
-        }
-    }
-    
     if ( length > 0 )
     {
         _length = (double) length;

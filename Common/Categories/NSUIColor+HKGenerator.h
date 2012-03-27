@@ -32,6 +32,8 @@
 #define HK_COLOR_FROM_HEX(hex)  [UIColor colorFromHexString:(hex)]
 
 #else
+CGColorRef CGColorCreateFromNSColor ( CGColorSpaceRef colorSpace, NSColor *color );
+
 @interface NSColor (HKGenerator)
 
 + (NSColor *)colorFromHexString:(NSString *)string;

@@ -107,7 +107,7 @@
 
 @end
 
-static void *gHKHookKey = nil;
+static const void *gHKHookKey = (void *) &gHKHookKey; 
 
 void HKHookRegister ( const char *hook, id object, id registrant, HKHookHandler handler )
 {

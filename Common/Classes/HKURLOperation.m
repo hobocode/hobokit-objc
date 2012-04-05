@@ -32,27 +32,16 @@
 
 @implementation HKURLOperation
 
-- (id)initWithURL:(NSURL *)url progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler
+@synthesize useCredentialStorage = _useCredentialStorage;
+
+- (id)initWithURL:(NSURL *)url progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler authenticationChallengeHandler:(HKURLOperationAuthenticationChallengeHandler)authHandler
 {
-    if ( (self = [super init]) )
-    {
-        _url = [url retain];
-        
-        if ( progressHandler != nil )
-        {
-            _progressHandler = Block_copy( progressHandler );
-        }
-        
-        if ( completionHandler != nil )
-        {
-            _completionHandler = Block_copy( completionHandler );
-        }
-    }
-    
-    return self;
+    NSURLRequest *request = [[NSURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:60.0] retain];
+
+    return [self initWithURLRequest:request progressHandler:progressHandler completionHandler:completionHandler authenticationChallengeHandler:authHandler];
 }
 
-- (id)initWithURLRequest:(NSURLRequest *)request progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler
+- (id)initWithURLRequest:(NSURLRequest *)request progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler authenticationChallengeHandler:(HKURLOperationAuthenticationChallengeHandler)authHandler
 {
     if ( (self = [super init]) )
     {
@@ -67,14 +56,31 @@
         {
             _completionHandler = Block_copy( completionHandler );
         }
+
+        if ( authHandler != nil )
+        {
+            _authenticationChallengeHandler = Block_copy( authHandler );
+        }
+
+        self.useCredentialStorage = YES;
     }
     
     return self;
 }
 
+
+- (id)initWithURL:(NSURL *)url progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler
+{
+    return [self initWithURL:url progressHandler:progressHandler completionHandler:completionHandler authenticationChallengeHandler:nil];
+}
+
+- (id)initWithURLRequest:(NSURLRequest *)request progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler
+{
+    return [self initWithURLRequest:request progressHandler:progressHandler completionHandler:completionHandler authenticationChallengeHandler:nil];
+}
+
 - (void)dealloc
 {
-    [_url release]; _url = nil;
     [_request release]; _request = nil;
     [_connection release]; _connection = nil;
     [_response release]; _response = nil;
@@ -90,6 +96,11 @@
     {
         Block_release( _completionHandler );
     }
+
+    if ( _authenticationChallengeHandler != nil )
+    {
+        Block_release( _authenticationChallengeHandler );
+    }
     
     [super dealloc];
 }
@@ -98,11 +109,6 @@
 
 - (void)main
 {
-    if ( _request == nil )
-    {
-        _request = [[NSURLRequest requestWithURL:_url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:60.0] retain];
-    }
-    
     _connection = [[NSURLConnection alloc] initWithRequest:_request delegate:self];
     _data = [[NSMutableData alloc] init];
     
@@ -120,23 +126,23 @@
 
 - (void)start
 {
-	if ( [self isCancelled] )
-	{
-		[self willChangeValueForKey:@"isFinished"];
-        
-		_finished = YES;
-		
+    if ( [self isCancelled] )
+    {
+        [self willChangeValueForKey:@"isFinished"];
+
+        _finished = YES;
+
         [self didChangeValueForKey:@"isFinished"];
-        
+
         return;
-	}
-	
+    }
+
 	[self willChangeValueForKey:@"isExecuting"];
-    
+
     _executing = YES;
 
     [NSThread detachNewThreadSelector:@selector(main) toTarget:self withObject:nil];
-        
+
     [self didChangeValueForKey:@"isExecuting"];
 }
 
@@ -200,19 +206,6 @@
 {
     long long length = [response expectedContentLength];
     
-    if ( length == NSURLResponseUnknownLength )
-    {
-        if ( [response isKindOfClass:[NSHTTPURLResponse class]] )
-        {
-            NSString *lstring = [[(NSHTTPURLResponse *)response allHeaderFields] objectForKey:@"Content-length"];
-            
-            if ( lstring != nil )
-            {
-                length = [lstring longLongValue];
-            }
-        }
-    }
-    
     if ( length > 0 )
     {
         _length = (double) length;
@@ -249,8 +242,30 @@
         [_error release];
         _error = [error retain];
     }
-    
+
     [_connection release]; _connection = nil;
+}
+
+- (void)connection:(NSURLConnection *)connection didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
+{
+    if ( _authenticationChallengeHandler )
+    {
+        BOOL tryAgain = _authenticationChallengeHandler( challenge );
+        if ( !tryAgain )
+        {
+            _error = [[NSError alloc] initWithDomain:HK_ERROR_DOMAIN code:HK_ERROR_CODE_URL_OPERATION_NOT_AUTHENTICATED_CODE userInfo:nil];
+            [_connection release]; _connection = nil;
+        }
+    }
+    else
+    {
+        [_connection release]; _connection = nil;
+    }
+}
+
+- (BOOL)connectionShouldUseCredentialStorage:(NSURLConnection *)connection
+{
+    return self.useCredentialStorage;
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection

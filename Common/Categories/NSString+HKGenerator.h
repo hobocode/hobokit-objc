@@ -29,6 +29,7 @@
 + (NSString *)UUIDString;
 + (NSString *)randomBase36StringOfLength:(NSUInteger)length;
 + (NSString *)randomBase16StringOfLength:(NSUInteger)length;
++ (NSString *)randomBase10StringOfLength:(NSUInteger)length;
 
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
 + (NSString *)hexStringFromColor:(UIColor *)color;

@@ -26,25 +26,37 @@
 
 typedef void (^HKURLOperationCompletionHandler)( BOOL success, NSURLResponse *response, NSData *data, NSError *error );
 typedef void (^HKURLOperationProgressHandler)( double progress );
+typedef BOOL (^HKURLOperationAuthenticationChallengeHandler)( NSURLAuthenticationChallenge *challenge );
+
+#define HK_ERROR_CODE_URL_OPERATION_NOT_AUTHENTICATED_CODE     4001
 
 @interface HKURLOperation : NSOperation
 {
 @private
-    NSURL                           *_url;
-    NSURLRequest                    *_request;
-    NSURLConnection                 *_connection;
-    NSURLResponse                   *_response;
-    NSMutableData                   *_data;
-    NSError                         *_error;
-    HKURLOperationCompletionHandler  _completionHandler;
-    HKURLOperationProgressHandler    _progressHandler;
-    double                           _length;
-    BOOL                             _executing;
-    BOOL                             _finished;
-    BOOL                             _cancelled;
+    NSURLRequest    *_request;
+    NSURLConnection *_connection;
+    NSURLResponse   *_response;
+    NSMutableData   *_data;
+    NSError         *_error;
+
+    HKURLOperationCompletionHandler                 _completionHandler;
+    HKURLOperationProgressHandler                   _progressHandler;
+    HKURLOperationAuthenticationChallengeHandler    _authenticationChallengeHandler;
+
+    double          _length;
+    BOOL            _executing;
+    BOOL            _finished;
+    BOOL            _cancelled;
+
+    BOOL            _useCredentialStorage;
 }
+
+@property (nonatomic, assign) BOOL useCredentialStorage;
 
 - (id)initWithURL:(NSURL *)url progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler;
 - (id)initWithURLRequest:(NSURLRequest *)request progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler;
+
+- (id)initWithURL:(NSURL *)url progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler authenticationChallengeHandler:(HKURLOperationAuthenticationChallengeHandler)authHandler;
+- (id)initWithURLRequest:(NSURLRequest *)request progressHandler:(HKURLOperationProgressHandler)progressHandler completionHandler:(HKURLOperationCompletionHandler)completionHandler authenticationChallengeHandler:(HKURLOperationAuthenticationChallengeHandler)authHandler;
 
 @end

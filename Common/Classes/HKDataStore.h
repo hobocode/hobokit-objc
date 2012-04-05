@@ -50,6 +50,7 @@ typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *
     NSMutableSet                    *_bundles;
     NSMutableSet                    *_chandlers;
     NSMutableSet                    *_shandlers;
+    NSMutableSet                    *_detached;
     HKDataStoreLocation              _location;
     BOOL                             _setup;
     BOOL                             _change;
@@ -75,9 +76,11 @@ typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *
 - (void)asynchronizedAndSaveWithContext:(HKDataStoreHandler)handler;
 
 - (void)save;
+- (void)saveAll;
 - (void)purgeData;
 
 - (void)setMergePolicy:(id)policy;
+- (void)setStalenessInterval:(NSTimeInterval)expiration;
 
 - (NSManagedObjectContext *)detachNewContext;
 - (void)dismissDetachedContext:(NSManagedObjectContext *)context;

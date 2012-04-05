@@ -22,18 +22,25 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#import <AppKit/AppKit.h>
+#import <Cocoa/Cocoa.h>
 
-typedef void (^HKPersistentDocumentHandler)( NSManagedObjectContext *context );
+@interface NSPersistentDocument (HKPersistentPackageDocument)
 
-@interface HKPersistentDocument : NSPersistentDocument
+- (void)simpleSetFileURL:(NSURL *)URL;
+
+@end
+
+@interface HKPersistentPackageDocument : NSPersistentDocument
 {
 }
 
-- (void)synchronizedWithContext:(HKPersistentDocumentHandler)handler;
-- (void)asynchronizedWithContext:(HKPersistentDocumentHandler)handler;
+// Implement to set the core data name
+- (NSString *)dataStoreName;
 
-- (void)synchronizedAndSaveWithContext:(HKPersistentDocumentHandler)handler;
-- (void)asynchronizedAndSaveWithContext:(HKPersistentDocumentHandler)handler;
+// Implement to read non core data files
+- (BOOL)readFromFileWrapper:(NSFileWrapper *)fileWrapper atPath:(NSString *)path error:(NSError **)error;
+
+// Implement to save non core data files
+- (BOOL)updateFileWrapper:(NSFileWrapper *)documentFileWrapper atPath:(NSString *)path error:(NSError **)error;
 
 @end

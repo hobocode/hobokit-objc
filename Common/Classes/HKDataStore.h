@@ -53,6 +53,7 @@ typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *
     HKDataStoreLocation              _location;
     BOOL                             _setup;
     BOOL                             _change;
+    BOOL                             _usesLightweightMigration;
 }
 
 @property (readonly) NSManagedObjectContext *context;
@@ -65,6 +66,7 @@ typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *
 
 - (void)addModelBundle:(NSBundle *)bundle;
 - (void)setDataStoreLocation:(HKDataStoreLocation)location;
+- (void)setUsesLightweightMigration:(BOOL)flag;
 
 - (void)synchronizedWithContext:(HKDataStoreHandler)handler;
 - (void)asynchronizedWithContext:(HKDataStoreHandler)handler;

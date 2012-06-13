@@ -502,8 +502,14 @@ static HKDataStore *gHKDataStore = nil;
 #ifdef HK_DATA_STORE_DELETE_FAULTY_STORE
 #warning "HK_DATA_STORE_DELETE_FAULTY_STORE set"
             
-            if ( [error code] == NSPersistentStoreIncompatibleVersionHashError )
+         // if ( [error code] == NSPersistentStoreIncompatibleVersionHashError )
             {
+                [fm copyItemAtURL:url
+                            toURL:[[url URLByDeletingLastPathComponent]
+                                   URLByAppendingPathComponent:
+                                   [NSString stringWithFormat:@"Data-old-%lu.db", (NSUInteger) [[NSDate date] timeIntervalSince1970]]]
+                            error:&error];
+                
                 [fm removeItemAtURL:url error:&error];
                 
                 [self setup];

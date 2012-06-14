@@ -65,8 +65,8 @@ static HKRESTAPI *gHKRESTAPI = nil;
 
 - (void)setup;
 
-- (void)performRequest:(NSURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)completionHandler progressHandler:(HKRESTAPIProgressHandler)progressHandler;
-- (NSURLRequest *)requestForMethod:(NSString *)method HTTPMethod:(NSString *)httpMethod HTTPBody:(NSData *)body contentType:(NSString *)contentType;
+- (void)performRequest:(NSMutableURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)completionHandler progressHandler:(HKRESTAPIProgressHandler)progressHandler;
+- (NSMutableURLRequest *)requestForMethod:(NSString *)method HTTPMethod:(NSString *)httpMethod HTTPBody:(NSData *)body contentType:(NSString *)contentType;
 - (NSString *)URLVariablesUsingParameters:(NSDictionary *)parameters;
 - (NSData *)formDataUsingParameters:(NSDictionary *)parameters;
 
@@ -195,10 +195,14 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
 {
     NSMutableString     *ustring = [NSMutableString stringWithString:method];
     NSString            *variables;
+    NSMutableDictionary *cparams = [NSMutableDictionary dictionary];
     
-    if ( parameters != nil )
+    [cparams addEntriesFromDictionary:_persistentParameters];
+    [cparams addEntriesFromDictionary:parameters];
+    
+    if ( [cparams count] > 0 )
     {
-        variables = [self URLVariablesUsingParameters:parameters];
+        variables = [self URLVariablesUsingParameters:cparams];
         
         if ( variables )
         {
@@ -217,10 +221,14 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
 {
     NSData              *data = nil;
     NSString            *contentType = nil;
+    NSMutableDictionary *cparams = [NSMutableDictionary dictionary];
     
-    if ( parameters != nil )
+    [cparams addEntriesFromDictionary:_persistentParameters];
+    [cparams addEntriesFromDictionary:parameters];
+    
+    if ( [cparams count] > 0 )
     {
-        data = [self formDataUsingParameters:parameters];
+        data = [self formDataUsingParameters:cparams];
         
         if ( data != nil )
         {
@@ -239,6 +247,34 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
 - (void)removeHTTPHeaderForKey:(NSString *)key
 {
     [self.HTTPHeaders removeObjectForKey:key];
+}
+
+- (void)setPersistentParameter:(id)parameter forName:(NSString *)name
+{
+    @synchronized (self)
+    {
+        [_persistentParameters setObject:parameter forKey:name];
+    }
+}
+
+- (id)persistentParameterForName:(NSString *)name
+{
+    id parameter = nil;
+    
+    @synchronized (self)
+    {
+        parameter = [_persistentParameters objectForKey:name];
+    }
+    
+    return parameter;
+}
+
+- (void)removePersistentParameterForName:(NSString *)name
+{
+    @synchronized (self)
+    {
+        [_persistentParameters removeObjectForKey:name];
+    }
 }
 
 - (BOOL)hasPendingRequests
@@ -288,12 +324,16 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
         
         self.HTTPHeaders = [NSMutableDictionary dictionary];
     }
+    
+    if ( _persistentParameters == nil )
+    {
+        _persistentParameters = [[NSMutableDictionary alloc] init];
+    }
 }
 
-- (void)performRequest:(NSURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)completionHandler progressHandler:(HKRESTAPIProgressHandler)progressHandler
+- (void)performRequest:(NSMutableURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)completionHandler progressHandler:(HKRESTAPIProgressHandler)progressHandler
 {
     id rhandler = ^{
-
         if ( request == nil )
         {
             completionHandler( nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil], -1 );
@@ -312,6 +352,32 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
         
         NSLog(@"HKRESTAPI->Requesting URL (%@): %@ (with body: %@)", [request HTTPMethod], [request URL], dstring);
 #endif
+        
+        if ( self.responseCookies != nil )
+        {
+            if ([[self responseCookies] count] > 0)
+            {
+                NSHTTPCookie *cookie;
+                NSString     *cookieHeader = nil;
+                
+                for ( cookie in [self responseCookies] )
+                {
+                    if ( !cookieHeader )
+                    {
+                        cookieHeader = [NSString stringWithFormat:@"%@=%@", [cookie name], [cookie value]];
+                    }
+                    else
+                    {
+                        cookieHeader = [NSString stringWithFormat: @"%@; %@=%@", cookieHeader, [cookie name], [cookie value]];
+                    }
+                }
+                
+                if ( cookieHeader )
+                {
+                    [request setValue:cookieHeader forHTTPHeaderField:@"Cookie"];
+                }
+            }
+        }
         
         HKURLOperation *operation = [[HKURLOperation alloc] initWithURLRequest:request
                                                         progressHandler:^( double progress ) {
@@ -411,7 +477,7 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
     }
 }
 
-- (NSURLRequest *)requestForMethod:(NSString *)method HTTPMethod:(NSString *)httpMethod HTTPBody:(NSData *)body contentType:(NSString *)contentType
+- (NSMutableURLRequest *)requestForMethod:(NSString *)method HTTPMethod:(NSString *)httpMethod HTTPBody:(NSData *)body contentType:(NSString *)contentType
 {
     NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
     NSString            *mstring;
@@ -441,6 +507,7 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
     for ( NSString *field in self.HTTPHeaders )
     {
         NSString *value = [self.HTTPHeaders objectForKey:field];
+        
         [request setValue:value forHTTPHeaderField:field];
     }
 
@@ -452,31 +519,6 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
     if ( contentType != nil )
     {
         [request setValue:contentType forHTTPHeaderField:@"Content-type"];
-    }
-
-    if ( self.responseCookies != nil )
-    {
-        if ([[self responseCookies] count] > 0)
-        {
-            NSHTTPCookie *cookie;
-            NSString *cookieHeader = nil;
-            for ( cookie in [self responseCookies] )
-            {
-                if ( !cookieHeader )
-                {
-                    cookieHeader = [NSString stringWithFormat:@"%@=%@", [cookie name], [cookie value]];
-                }
-                else
-                {
-                    cookieHeader = [NSString stringWithFormat: @"%@; %@=%@", cookieHeader, [cookie name], [cookie value]];
-                }
-            }
-
-            if ( cookieHeader )
-            {
-                [request setValue:cookieHeader forHTTPHeaderField:@"Cookie"];
-            }
-        }
     }
     
     [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];

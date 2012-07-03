@@ -39,6 +39,7 @@
     UITableView     *_tableView;
     UITextField     *_currentTextField;
     CGRect          _currentKeyboardFrame;
+    BOOL            _editing;
 }
 
 @property (retain) id model;
@@ -46,6 +47,7 @@
 @property (nonatomic, retain) IBOutlet UITableView *tableView;
 @property (retain) UITextField *currentTextField;
 @property (assign) CGRect currentKeyboardFrame;
+@property (readonly) BOOL editing;
 
 + (UINavigationController *)formNavigationControllerWithModel:(id)model definition:(NSDictionary *)definition;
 
@@ -58,5 +60,8 @@
 - (BOOL)ensureRequiredFieldsFilled;
 
 - (IBAction)handleDone:(id)sender;
+
+- (void)fieldDidBeginEditing;
+- (void)fieldDidEndEditing;
 
 @end

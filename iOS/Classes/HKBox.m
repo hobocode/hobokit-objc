@@ -317,9 +317,9 @@
 
 - (void)didAddSubview:(UIView *)subview
 {
-    $depends( @"view_frame", subview, @"frame", ^{
-        [selff setNeedsLayout];
-    });
+    [subview addObserver:self forKeyPath:@"frame" options:0 context:nil];
+    
+    [self setNeedsLayout];
 }
 
 - (void)setNeedsLayout
@@ -331,8 +331,20 @@
 }
 
 - (void)willRemoveSubview:(UIView *)subview
-{    
+{
+    [subview removeObserver:self forKeyPath:@"frame"];
+    
     [self setNeedsLayout];
+}
+
+#pragma mark Observations
+
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
+{
+    if ( [keyPath isEqualToString:@"frame"] )
+    {
+        [self setNeedsLayout];
+    }
 }
 
 @end

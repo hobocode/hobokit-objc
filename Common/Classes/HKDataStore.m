@@ -141,6 +141,14 @@ static HKDataStore *gHKDataStore = nil;
     }
 }
 
+- (void)setUsesLightweightMigration:(BOOL)flag
+{   
+    @synchronized (self)
+    {
+        _usesLightweightMigration = flag;
+    }
+}
+
 - (void)synchronizedWithContext:(HKDataStoreHandler)handler
 {
     if ( !_setup )
@@ -445,6 +453,7 @@ static HKDataStore *gHKDataStore = nil;
         NSString        *dir;
         NSURL           *url;
         NSError         *error = nil;
+        NSDictionary    *options = nil;
         
         switch ( _location )
         {
@@ -476,7 +485,14 @@ static HKDataStore *gHKDataStore = nil;
         
         _coordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:_model];
         
-        if ( ![_coordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:nil error:&error] )
+        if ( _usesLightweightMigration )
+        {
+            options = [NSDictionary dictionaryWithObjectsAndKeys:
+                       [NSNumber numberWithBool:YES], NSMigratePersistentStoresAutomaticallyOption,
+                       [NSNumber numberWithBool:YES], NSInferMappingModelAutomaticallyOption, nil];
+        }
+        
+        if ( ![_coordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:options error:&error] )
         {
 #ifdef HK_DEBUG_ERRORS
             NSLog(@"HKDataStore::setup->Error: '%@'", error);
@@ -486,8 +502,14 @@ static HKDataStore *gHKDataStore = nil;
 #ifdef HK_DATA_STORE_DELETE_FAULTY_STORE
 #warning "HK_DATA_STORE_DELETE_FAULTY_STORE set"
             
-            if ( [error code] == NSPersistentStoreIncompatibleVersionHashError )
+         // if ( [error code] == NSPersistentStoreIncompatibleVersionHashError )
             {
+                [fm copyItemAtURL:url
+                            toURL:[[url URLByDeletingLastPathComponent]
+                                   URLByAppendingPathComponent:
+                                   [NSString stringWithFormat:@"Data-old-%lu.db", (NSUInteger) [[NSDate date] timeIntervalSince1970]]]
+                            error:&error];
+                
                 [fm removeItemAtURL:url error:&error];
                 
                 [self setup];

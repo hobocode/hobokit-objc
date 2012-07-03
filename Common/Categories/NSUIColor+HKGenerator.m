@@ -45,6 +45,16 @@
 
 @end
 #else
+CGColorRef CGColorCreateFromNSColor ( CGColorSpaceRef colorSpace, NSColor *color )
+{
+    NSColor *deviceColor = [color colorUsingColorSpaceName:NSDeviceRGBColorSpace];
+    CGFloat  components[4];
+    
+    [deviceColor getRed:&components[0] green:&components[1] blue:&components[2] alpha:&components[3]];
+    
+    return CGColorCreate( colorSpace, components );
+}
+
 @implementation NSColor (HKGenerator)
 
 + (NSColor *)colorFromHexString:(NSString *)string

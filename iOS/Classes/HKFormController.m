@@ -48,7 +48,8 @@
     return rnc;
 }
 
-@synthesize model = _model, definition = _definition, tableView = _tableView, currentTextField = _currentTextField, currentKeyboardFrame = _currentKeyboardFrame;
+@synthesize model = _model, definition = _definition, tableView = _tableView;
+@synthesize currentTextField = _currentTextField, currentKeyboardFrame = _currentKeyboardFrame, editing = _editing;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -113,6 +114,16 @@
 - (NSString *)localize:(NSString *)string
 {
     return NSLocalizedString(string, @"");
+}
+
+- (void)fieldDidBeginEditing
+{
+    
+}
+
+- (void)fieldDidEndEditing
+{
+    
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
@@ -305,14 +316,18 @@
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField
 {    
-    self.currentTextField = textField;
+    _editing = YES; self.currentTextField = textField;
     
     [self ensureTableViewCellVisible:[self cellWithTextField:self.currentTextField]];
+    [self fieldDidBeginEditing];
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField
-{    
+{
+    _editing = NO;
+    
     [self updateModel];
+    [self fieldDidEndEditing];
 }
 
 #pragma mark UITableViewDelegate & DataSource Methods

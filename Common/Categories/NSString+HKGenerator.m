@@ -73,6 +73,21 @@ static unsigned char gBase36[36] = {
     return retval;
 }
 
++ (NSString *)randomBase10StringOfLength:(NSUInteger)length
+{
+    NSMutableString *retval = [NSMutableString stringWithCapacity:length];
+    NSUInteger       randidx;
+    
+    for ( NSUInteger i = 0 ; i < length ; i++ )
+    {
+        randidx = arc4random() % 10;
+        
+        [retval appendFormat:@"%c", gBase36[randidx]];
+    }
+    
+    return retval;
+}
+
 #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
 + (NSString *)hexStringFromColor:(UIColor *)color
 {

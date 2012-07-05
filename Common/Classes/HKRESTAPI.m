@@ -43,12 +43,16 @@
 
 - (id)resultForData:(NSData *)data error:(NSError **)error
 {
-    JSONDecoder *decoder = [[JSONDecoder alloc] initWithParseOptions:JKParseOptionNone];
-    id           retval;
-    
-    retval = [decoder objectWithData:data error:error];
-    
-    [decoder release];
+    id retval = nil;
+  
+    if ( [data length] > 0 )
+    {
+        JSONDecoder *decoder = [[JSONDecoder alloc] initWithParseOptions:JKParseOptionNone];
+        
+        retval = [decoder objectWithData:data error:error];
+        
+        [decoder release];
+    }
     
     return retval;
 }
@@ -143,6 +147,10 @@ static HKRESTAPI *gHKRESTAPI = nil;
 @synthesize APIBaseURL = _APIBaseURL, APIVersion = _APIVersion, APIUsername = _APIUsername, APIPassword = _APIPassword;
 @synthesize responseCookies = _responseCookies, resultAdapter = _resultAdapter;
 @synthesize HTTPHeaders = _HTTPHeaders;
+
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+@synthesize showsNetworkIndicator = _showsNetworkIndicator;
+#endif
 
 + (HKRESTAPI *)defaultAPI
 {
@@ -293,7 +301,7 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
 - (void)performRequest:(NSURLRequest *)request synchronously:(BOOL)synchronously completionHandler:(HKRESTAPICompletionHandler)completionHandler progressHandler:(HKRESTAPIProgressHandler)progressHandler
 {
     id rhandler = ^{
-
+        
         if ( request == nil )
         {
             completionHandler( nil, [NSError errorWithDomain:NSPOSIXErrorDomain code:EINVAL userInfo:nil], -1 );
@@ -313,6 +321,10 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
         NSLog(@"HKRESTAPI->Requesting URL (%@): %@ (with body: %@)", [request HTTPMethod], [request URL], dstring);
 #endif
         
+#ifdef HK_DEBUG_REST_API_PROFILE
+        NSDate *s = [NSDate date];
+#endif
+        
         HKURLOperation *operation = [[HKURLOperation alloc] initWithURLRequest:request
                                                         progressHandler:^( double progress ) {
                                                             if ( progressHandler != nil )
@@ -327,6 +339,13 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
 #ifdef HK_DEBUG_REST_API_HTTP_HEADERS
                                                           NSDictionary        *headers = nil;
 #endif
+                                                          
+#ifdef HK_DEBUG_REST_API_PROFILE
+                                                          NSDate *eresponse = [NSDate date];
+                                                          
+                                                          NSLog(@"HKRESTAPI::performRequest(%@)->Response time: %.3f seconds.", [request URL], [eresponse timeIntervalSinceDate:s]);
+#endif
+                                                          
                                                           if ( [response isKindOfClass:[NSHTTPURLResponse class]] )
                                                           {
                                                               NSHTTPURLResponse *hresponse = (NSHTTPURLResponse *) response;
@@ -392,14 +411,32 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
                                                               {
                                                                   completionHandler( nil, returnsResult ? oerror : nil, statusCode );
                                                                   
+#ifdef HK_DEBUG_REST_API_PROFILE
+                                                                  NSDate *ecomplete = [NSDate date];
+                                                                  
+                                                                  NSLog(@"HKRESTAPI::performRequest(%@)->Complete time: %.3f seconds.", [request URL], [ecomplete timeIntervalSinceDate:s]);
+#endif
+                                                                  
                                                                   return;
                                                               }
                                                               
                                                               completionHandler( result, nil, statusCode );
+                                                              
+#ifdef HK_DEBUG_REST_API_PROFILE
+                                                              NSDate *ecomplete = [NSDate date];
+                                                              
+                                                              NSLog(@"HKRESTAPI::performRequest(%@)->Complete time: %.3f seconds.", [request URL], [ecomplete timeIntervalSinceDate:s]);
+#endif
                                                           }
                                                           else
                                                           {
                                                               completionHandler( nil, oerror, statusCode );
+                                                              
+#ifdef HK_DEBUG_REST_API_PROFILE
+                                                              NSDate *ecomplete = [NSDate date];
+                                                              
+                                                              NSLog(@"HKRESTAPI::performRequest(%@)->Complete time: %.3f seconds.", [request URL], [ecomplete timeIntervalSinceDate:s]);
+#endif
                                                           }
                                                       }];
         
@@ -407,8 +444,34 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
         [operation waitUntilFinished];
         [operation release];
         
+#ifdef HK_DEBUG_REST_API_PROFILE
+        NSDate *etotal = [NSDate date];
+        
+        NSLog(@"HKRESTAPI::performRequest(%@)->Total time: %.3f seconds.", [request URL], [etotal timeIntervalSinceDate:s]);
+#endif
+        
         OSAtomicDecrement32( &_rcount );
+        
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+            if ( self.showsNetworkIndicator )
+            {
+                if ( _rcount <= 0 )
+                {
+                    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
+                }
+            }
+#endif
     };
+    
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    if ( self.showsNetworkIndicator )
+    {
+        if ( _rcount <= 0 )
+        {
+            [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
+        }
+    }
+#endif
     
     OSAtomicIncrement32( &_rcount );
 

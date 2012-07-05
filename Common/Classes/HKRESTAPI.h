@@ -28,6 +28,7 @@
 # define HK_DEBUG_REST_API
 # ifdef HK_DEBUG_REST_API
 #  define HK_DEBUG_REST_API_HTTP_HEADERS
+#  define HK_DEBUG_REST_API_PROFILE
 # endif
 #endif
 
@@ -55,7 +56,11 @@ typedef void (^HKRESTAPICompletionHandler)( id result, NSError *error, NSInteger
     NSMutableDictionary     *_HTTPHeaders;
     dispatch_queue_t         _requests;
     int32_t                  _rcount;
-
+    
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+    BOOL                     _showsNetworkIndicator;
+#endif
+    
     NSArray                 *_responseCookies;
     HKRESTAPIResultAdapter  *_resultAdapter;
 }
@@ -68,6 +73,10 @@ typedef void (^HKRESTAPICompletionHandler)( id result, NSError *error, NSInteger
 
 @property (retain) NSArray *responseCookies;
 @property (retain) HKRESTAPIResultAdapter *resultAdapter;
+
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+@property (assign) BOOL showsNetworkIndicator;
+#endif
 
 @end
 

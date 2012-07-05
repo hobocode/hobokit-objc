@@ -38,5 +38,6 @@
 #endif
 
 - (NSString *)ASCIISlugString;
+- (NSString *)SHA1Digest;
 
 @end

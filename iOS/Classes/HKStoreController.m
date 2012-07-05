@@ -83,6 +83,7 @@ static HKStoreController *gHKStoreController = nil;
     if ( self = [super init] )
     {
         _lookups = [[NSMutableDictionary alloc] init];
+        _products = [[NSMutableDictionary alloc] init];
         _purchases = [[NSMutableDictionary alloc] init];
         _requests = [[NSMutableSet alloc] init];
         _observers = [[NSMutableSet alloc] init];
@@ -99,6 +100,7 @@ static HKStoreController *gHKStoreController = nil;
     NSLog(@"Dealloc: %@", self);
 #endif
     [_lookups release]; _lookups = nil;
+    [_products release]; _products = nil;
     [_purchases release]; _purchases = nil;
     [_requests release]; _requests = nil;
     [_observers release]; _observers = nil;
@@ -161,9 +163,10 @@ static HKStoreController *gHKStoreController = nil;
 
 - (void)purchase:(NSSet *)purchases
 {
-    SKPayment           *payment;
-    NSMutableSet        *identifiers = [NSMutableSet setWithCapacity:[purchases count]];
-    NSString            *identifier;
+    SKPayment    *payment;
+    SKProduct    *product;
+    NSMutableSet *identifiers = [NSMutableSet setWithCapacity:[purchases count]];
+    NSString     *identifier;
     
     for ( id <HKStorePurchase> purchase in purchases )
     {
@@ -182,9 +185,12 @@ static HKStoreController *gHKStoreController = nil;
     
     for ( identifier in identifiers )
     {
-        payment = [SKPayment paymentWithProductIdentifier:identifier];
+        if ( (product = [_products objectForKey:identifier]) != nil )
+        {
+            payment = [SKPayment paymentWithProduct:product];
         
-        [[SKPaymentQueue defaultQueue] addPayment:payment];
+            [[SKPaymentQueue defaultQueue] addPayment:payment];
+        }
     }
 }
 
@@ -278,14 +284,14 @@ static HKStoreController *gHKStoreController = nil;
 {
     id <HKStorePurchase> purchase;
     
-    for ( SKProduct *storeProduct in response.products )
+    for ( SKProduct *product in response.products )
     {
-        purchase = [_lookups objectForKey:storeProduct.productIdentifier];
+        purchase = [_lookups objectForKey:product.productIdentifier];
         
         if ( purchase )
         {
-            [purchase setPrice:[storeProduct price]];
-            [purchase setPriceLocale:[storeProduct priceLocale]];
+            [purchase setPrice:[product price]];
+            [purchase setPriceLocale:[product priceLocale]];
             
             for ( id <HKStoreObserver> observer in _observers )
             {
@@ -295,7 +301,8 @@ static HKStoreController *gHKStoreController = nil;
                 }
             }
             
-            [_lookups removeObjectForKey:storeProduct.productIdentifier];
+            [_products setObject:product forKey:[product productIdentifier]];
+            [_lookups removeObjectForKey:[product productIdentifier]];
         }
     }
 }

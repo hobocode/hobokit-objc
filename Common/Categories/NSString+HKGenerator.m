@@ -24,6 +24,8 @@
 
 #import "NSString+HKGenerator.h"
 
+#import <CommonCrypto/CommonDigest.h>
+
 static unsigned char gBase36[36] = {
     '0', '1', '2', '3', '4', '5', '6', '7', '8',
     '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
@@ -153,6 +155,22 @@ static unsigned char gBase36[36] = {
     } while ( YES );
     
     [retval replaceOccurrencesOfString:@" " withString:@"-" options:0 range:NSMakeRange( 0, [retval length] )];
+    
+    return [NSString stringWithString:retval];
+}
+
+- (NSString *)SHA1Digest
+{
+    NSMutableString *retval = [NSMutableString stringWithCapacity:(CC_SHA1_DIGEST_LENGTH * 2)];
+    const char      *cstr = [self cStringUsingEncoding:NSUTF8StringEncoding];    
+    uint8_t          digest[CC_SHA1_DIGEST_LENGTH];
+    
+    CC_SHA1( cstr, strlen(cstr), digest );
+        
+    for ( int i = 0 ; i < CC_SHA1_DIGEST_LENGTH ; i++ )
+    {
+        [retval appendFormat:@"%02x", digest[i]];
+    }
     
     return [NSString stringWithString:retval];
 }

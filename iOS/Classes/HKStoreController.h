@@ -30,6 +30,7 @@
 {
 @private
     NSMutableDictionary *_lookups;
+    NSMutableDictionary *_products;
     NSMutableDictionary *_purchases;
     NSMutableSet        *_requests;
     NSMutableSet        *_observers;

@@ -316,6 +316,7 @@
 - (void)didAddSubview:(UIView *)subview
 {
     [subview addObserver:self forKeyPath:@"frame" options:0 context:nil];
+    [subview addObserver:self forKeyPath:@"hidden" options:0 context:nil];
     
     [self setNeedsLayout];
 }
@@ -331,6 +332,7 @@
 - (void)willRemoveSubview:(UIView *)subview
 {
     [subview removeObserver:self forKeyPath:@"frame"];
+    [subview removeObserver:self forKeyPath:@"hidden"];
     
     [self setNeedsLayout];
 }
@@ -339,9 +341,13 @@
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
-    if ( [keyPath isEqualToString:@"frame"] )
+    if ( [keyPath isEqualToString:@"frame"] || [keyPath isEqualToString:@"hidden"] )
     {
         [self setNeedsLayout];
+    }
+    else
+    {
+        [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
     }
 }
 

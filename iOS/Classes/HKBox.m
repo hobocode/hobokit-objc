@@ -70,13 +70,6 @@
     return self;
 }
 
-- (void)dealloc
-{
-    SPRemoveAssociatedDependencies(self);
-    
-    [super dealloc];
-}
-
 - (HKBoxType)type
 {
     return _type;

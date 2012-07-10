@@ -1,6 +1,3 @@
 [submodule "External/JSONKit"]
 	path = External/JSONKit
 	url = git://github.com/johnezang/JSONKit.git
-[submodule "External/SPSuccinct"]
-	path = External/SPSuccinct
-	url = git://github.com/nevyn/SPSuccinct.git

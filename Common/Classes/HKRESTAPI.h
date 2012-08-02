@@ -27,8 +27,11 @@
 #ifdef HK_DEBUG
 # define HK_DEBUG_REST_API
 # ifdef HK_DEBUG_REST_API
-#  define HK_DEBUG_REST_API_HTTP_HEADERS
 #  define HK_DEBUG_REST_API_PROFILE
+// #  define HK_DEBUG_REST_API_DATA
+#  ifdef HK_DEBUG_REST_API_DATA
+// #   define HK_DEBUG_REST_API_HTTP_HEADERS
+#  endif
 # endif
 #endif
 

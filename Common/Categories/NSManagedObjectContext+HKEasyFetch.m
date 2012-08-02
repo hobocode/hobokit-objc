@@ -69,7 +69,7 @@
 
     if (error != nil)
     {
-        [NSException raise:NSGenericException format:[error description]];
+        [NSException raise:NSGenericException format:@"%@", [error localizedDescription]];
     }
 
     return results;

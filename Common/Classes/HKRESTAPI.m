@@ -349,12 +349,12 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
             return;
         }
 
-#ifdef HK_DEBUG_REST_API
+#ifdef HK_DEBUG_REST_API_DATA
         NSData *ddata = [request HTTPBody];
         NSString *dstring;
         
         if ( [ddata length] > 1024 )
-            dstring = [NSString stringWithFormat:@"[data length='%d']", [ddata length]];
+            dstring = [NSString stringWithFormat:@"[data length='%lu']", [ddata length]];
         else
             dstring = [[[NSString alloc] initWithData:ddata encoding:NSUTF8StringEncoding] autorelease];
         
@@ -424,7 +424,7 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
                                                           
                                                           if ( success )
                                                           {
-#ifdef HK_DEBUG_REST_API
+#ifdef HK_DEBUG_REST_API_DATA
                                                               NSLog(@"\r\n########## HKRESTAPI DATA from %@ (status code: %i) ##########\r\n%@\r\n########## ------------------------------------------- ##########\r\n", [request HTTPMethod], (int)statusCode, [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease]);
 # ifdef HK_DEBUG_REST_API_HTTP_HEADERS
                                                               if ( headers != nil )

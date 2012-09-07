@@ -28,18 +28,19 @@
 
 @interface NSManagedObjectContext (HKEasyFetchPrivate)
 
-- (NSArray *)fetchObjectsForEntityName:(NSString *)entityName sortDescriptors:(NSArray *)sortDescriptors withPredicate:(id)stringOrPredicate arguments:(va_list)arguments;
+- (NSArray *)fetchObjectsForEntityName:(NSString *)entityName sortDescriptors:(NSArray *)sortDescriptors limit:(NSInteger)limit withPredicate:(id)stringOrPredicate arguments:(va_list)arguments;
 
 @end
 
 @implementation NSManagedObjectContext (HKEasyFetch)
 
-- (NSArray *)fetchObjectsForEntityName:(NSString *)entityName sortDescriptors:(NSArray *)sortDescriptors withPredicate:(id)stringOrPredicate arguments:(va_list)arguments
+- (NSArray *)fetchObjectsForEntityName:(NSString *)entityName sortDescriptors:(NSArray *)sortDescriptors limit:(NSInteger)limit withPredicate:(id)stringOrPredicate arguments:(va_list)arguments
 {
     NSEntityDescription *entity = [NSEntityDescription entityForName:entityName inManagedObjectContext:self];
     NSFetchRequest *request = [[[NSFetchRequest alloc] init] autorelease];
     [request setEntity:entity];
-    
+    [request setFetchLimit:limit];
+
     if (stringOrPredicate)
     {
         NSPredicate *predicate;
@@ -69,7 +70,7 @@
 
     if (error != nil)
     {
-        [NSException raise:NSGenericException format:@"%@", [error localizedDescription]];
+        [NSException raise:NSGenericException format:@"%@", [error description]];
     }
 
     return results;
@@ -79,7 +80,18 @@
 {
     va_list arguments;
     va_start( arguments, stringOrPredicate );
-    NSArray *results = [self fetchObjectsForEntityName:entityName sortDescriptors:nil withPredicate:stringOrPredicate arguments:arguments];
+    NSArray *results = [self fetchObjectsForEntityName:entityName sortDescriptors:nil limit:0  withPredicate:stringOrPredicate arguments:arguments];
+    va_end( arguments );
+
+    return [NSSet setWithArray:results];
+}
+
+
+- (NSSet *)fetchObjectsForEntityName:(NSString *)entityName limit:(NSInteger)limit withPredicate:(id)stringOrPredicate, ...
+{
+    va_list arguments;
+    va_start( arguments, stringOrPredicate );
+    NSArray *results = [self fetchObjectsForEntityName:entityName sortDescriptors:nil limit:limit  withPredicate:stringOrPredicate arguments:arguments];
     va_end( arguments );
 
     return [NSSet setWithArray:results];
@@ -89,7 +101,18 @@
 {
     va_list arguments;
     va_start( arguments, stringOrPredicate );
-    NSArray *results = [self fetchObjectsForEntityName:entityName sortDescriptors:sortDescriptors withPredicate:stringOrPredicate arguments:arguments];
+    NSArray *results = [self fetchObjectsForEntityName:entityName sortDescriptors:sortDescriptors limit:0 withPredicate:stringOrPredicate arguments:arguments];
+    va_end( arguments );
+
+    return results;
+}
+
+
+- (NSArray *)fetchObjectsForEntityName:(NSString *)entityName sortDescriptors:(NSArray *)sortDescriptors limit:(NSInteger)limit withPredicate:(id)stringOrPredicate, ...
+{
+    va_list arguments;
+    va_start( arguments, stringOrPredicate );
+    NSArray *results = [self fetchObjectsForEntityName:entityName sortDescriptors:sortDescriptors limit:limit withPredicate:stringOrPredicate arguments:arguments];
     va_end( arguments );
 
     return results;

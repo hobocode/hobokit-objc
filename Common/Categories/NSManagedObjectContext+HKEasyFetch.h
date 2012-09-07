@@ -26,8 +26,12 @@
 
 @interface NSManagedObjectContext (HKEasyFetch)
 
-- (NSSet *)fetchObjectsForEntityName:(NSString *)newEntityName withPredicate:(id)stringOrPredicate, ...;
+- (NSSet *)fetchObjectsForEntityName:(NSString *)entityName withPredicate:(id)stringOrPredicate, ...;
+
+- (NSSet *)fetchObjectsForEntityName:(NSString *)entityName limit:(NSInteger)limit withPredicate:(id)stringOrPredicate, ...;
 
 - (NSArray *)fetchObjectsForEntityName:(NSString *)entityName sortDescriptors:(NSArray *)sortDescriptors withPredicate:(id)stringOrPredicate, ...;
+
+- (NSArray *)fetchObjectsForEntityName:(NSString *)entityName sortDescriptors:(NSArray *)sortDescriptors limit:(NSInteger)limit withPredicate:(id)stringOrPredicate, ...;
 
 @end

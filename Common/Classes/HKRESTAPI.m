@@ -566,7 +566,7 @@ completionHandler:(HKRESTAPICompletionHandler)completionHandler
     }
 
     [request setCachePolicy:NSURLRequestUseProtocolCachePolicy];
-    [request setTimeoutInterval:60.0];
+    [request setTimeoutInterval:360.0];
     [request setHTTPMethod:httpMethod];
 
     if ( self.APIUsername && self.APIPassword )

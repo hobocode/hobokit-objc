@@ -51,6 +51,7 @@ typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *
     NSMutableSet                    *_chandlers;
     NSMutableSet                    *_shandlers;
     NSMutableSet                    *_detached;
+    NSString                        *_filename;
     HKDataStoreLocation              _location;
     BOOL                             _setup;
     BOOL                             _change;
@@ -64,6 +65,8 @@ typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *
 @interface HKDataStore (HKPublic)
 
 + (HKDataStore *)defaultStore;
+
+- (void)setFilename:(NSString *)filename;
 
 - (void)addModelBundle:(NSBundle *)bundle;
 - (void)setDataStoreLocation:(HKDataStoreLocation)location;

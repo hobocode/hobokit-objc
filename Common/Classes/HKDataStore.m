@@ -83,6 +83,7 @@ static HKDataStore *gHKDataStore = nil;
 {
     if ( self = [super init] )
     {
+        [self setFilename:@"Data.db"];
     }
     
     return self;
@@ -115,6 +116,17 @@ static HKDataStore *gHKDataStore = nil;
     }
     
     return gHKDataStore;
+}
+
+- (void)setFilename:(NSString *)filename
+{
+    if ( !_setup )
+    {
+        if ( filename != _filename )
+        {
+            _filename = [filename copy];
+        }
+    }
 }
 
 - (void)addModelBundle:(NSBundle *)bundle
@@ -470,7 +482,7 @@ static HKDataStore *gHKDataStore = nil;
                 break;
         }
         
-        url = [NSURL fileURLWithPath:[dir stringByAppendingPathComponent:@"Data.db"]];
+        url = [NSURL fileURLWithPath:[dir stringByAppendingPathComponent:_filename]];
         
         if ( ![fm fileExistsAtPath:dir isDirectory:NULL] )
         {

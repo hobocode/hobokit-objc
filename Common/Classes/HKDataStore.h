@@ -64,7 +64,7 @@ typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *
 
 @interface HKDataStore (HKPublic)
 
-+ (HKDataStore *)defaultStore;
++ (id)defaultStore;
 
 - (void)setFilename:(NSString *)filename;
 

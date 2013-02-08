@@ -26,8 +26,6 @@
 
 #import "NSFileManager+HKDirectories.h"
 
-static HKDataStore *gHKDataStore = nil;
-
 @interface HKDataStore (HKPrivate)
 
 - (void)setup;
@@ -38,54 +36,13 @@ static HKDataStore *gHKDataStore = nil;
 
 @implementation HKDataStore
 
-#pragma mark HKSingleton API
-
-+ (id)allocWithZone:(NSZone *)zone
-{
-    @synchronized(self)
-    {
-        if ( gHKDataStore == nil )
-        {
-            gHKDataStore = [super allocWithZone:zone];
-            
-            return gHKDataStore;
-        }
-    }
-    
-    return nil;
-}
-
-- (id)copyWithZone:(NSZone *)zone
-{
-    return self;
-}
-
-- (id)retain
-{
-    return self;
-}
-
-- (NSUInteger)retainCount
-{
-    return UINT_MAX;
-}
-
-- (oneway void)release
-{
-}
-
-- (id)autorelease
-{
-    return self;
-}
-
 - (id)init
 {
     if ( self = [super init] )
     {
         [self setFilename:@"Data.db"];
     }
-    
+
     return self;
 }
 
@@ -105,17 +62,14 @@ static HKDataStore *gHKDataStore = nil;
 
 @synthesize context = _context;
 
-+ (HKDataStore *)defaultStore
++ (id)defaultStore
 {
-    @synchronized ( self )
-    {
-        if ( gHKDataStore == nil )
-        {
-            [[self alloc] init];
-        }
-    }
-    
-    return gHKDataStore;
+    static dispatch_once_t once;
+    static id shared;
+    dispatch_once(&once, ^{
+        shared = [[self alloc] init];
+    });
+    return shared;
 }
 
 - (void)setFilename:(NSString *)filename
@@ -137,7 +91,7 @@ static HKDataStore *gHKDataStore = nil;
         {
             _bundles = [[NSMutableSet alloc] init];
         }
-        
+
         if ( bundle != nil )
         {
             [_bundles addObject:bundle];
@@ -154,7 +108,7 @@ static HKDataStore *gHKDataStore = nil;
 }
 
 - (void)setUsesLightweightMigration:(BOOL)flag
-{   
+{
     @synchronized (self)
     {
         _usesLightweightMigration = flag;
@@ -167,12 +121,12 @@ static HKDataStore *gHKDataStore = nil;
     {
         [self setup];
     }
-    
+
     dispatch_queue_t main = dispatch_get_main_queue();
     dispatch_queue_t current = dispatch_get_current_queue();
-    
+
     if ( current == main )
-    {        
+    {
         handler( _context );
     }
     else
@@ -189,7 +143,7 @@ static HKDataStore *gHKDataStore = nil;
     {
         [self setup];
     }
-    
+
     dispatch_async( dispatch_get_main_queue(), ^{
         handler( _context );
     });
@@ -201,16 +155,16 @@ static HKDataStore *gHKDataStore = nil;
     {
         [self setup];
     }
-    
+
     dispatch_queue_t main = dispatch_get_main_queue();
     dispatch_queue_t current = dispatch_get_current_queue();
-    
+
     if ( current == main )
     {
         NSError *error = nil;
-        
+
         handler( _context );
-        
+
         if ( ![_context save:&error] )
         {
 #ifdef HK_DEBUG_ERRORS
@@ -222,9 +176,9 @@ static HKDataStore *gHKDataStore = nil;
     {
         dispatch_sync( main, ^{
             NSError *error = nil;
-            
+
             handler( _context );
-            
+
             if ( ![_context save:&error] )
             {
 #ifdef HK_DEBUG_ERRORS
@@ -241,12 +195,12 @@ static HKDataStore *gHKDataStore = nil;
     {
         [self setup];
     }
-    
+
     dispatch_async( dispatch_get_main_queue(), ^{
         NSError *error = nil;
-        
+
         handler( _context );
-        
+
         if ( ![_context save:&error] )
         {
 #ifdef HK_DEBUG_ERRORS
@@ -259,12 +213,12 @@ static HKDataStore *gHKDataStore = nil;
 - (void)registerChangeHandler:(HKDataStoreChangeHandler)handler
 {
     @synchronized (self)
-    {        
+    {
         if ( _chandlers == nil )
         {
             _chandlers = [[NSMutableSet alloc] init];
         }
-        
+
         [_chandlers addObject:Block_copy( handler )];
     }
 }
@@ -288,12 +242,12 @@ static HKDataStore *gHKDataStore = nil;
 - (void)registerSaveHandler:(HKDataStoreSaveHandler)handler
 {
     @synchronized (self)
-    {        
+    {
         if ( _shandlers == nil )
         {
             _shandlers = [[NSMutableSet alloc] init];
         }
-        
+
         [_shandlers addObject:Block_copy( handler )];
     }
 }
@@ -332,16 +286,16 @@ static HKDataStore *gHKDataStore = nil;
     {
         [self setup];
     }
-    
+
     if ( [_context hasChanges] )
     {
         NSError *error = nil;
-        
+
         @try
         {
             if ( ![_context save:&error] )
             {
-                
+
             }
         }
         @catch (NSException *exception)
@@ -353,18 +307,18 @@ static HKDataStore *gHKDataStore = nil;
 - (void)saveAll
 {
     [self save];
-    
+
     for ( NSManagedObjectContext *context in _detached )
     {
         if ( [context hasChanges] )
         {
             NSError *error = nil;
-            
+
             @try
             {
                 if ( ![context save:&error] )
                 {
-                    
+
                 }
             }
             @catch (NSException *exception)
@@ -400,7 +354,7 @@ static HKDataStore *gHKDataStore = nil;
     {
         [self setup];
     }
-    
+
     [_context setMergePolicy:policy];
 }
 
@@ -410,32 +364,32 @@ static HKDataStore *gHKDataStore = nil;
     {
         [self setup];
     }
-    
+
     [_context setStalenessInterval:expiration];
 }
 
 - (NSManagedObjectContext *)detachNewContext
-{    
+{
     if ( !_setup )
     {
         [self setup];
     }
-    
+
     if ( _detached == nil )
         _detached = [[NSMutableSet alloc] init];
-    
+
     NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
-    
+
     [context setPersistentStoreCoordinator:_coordinator];
     [context setMergePolicy:[_context mergePolicy]];
-    
+
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(detachedManagedObjectContextDidSave:)
                                                  name:NSManagedObjectContextDidSaveNotification
                                                object:context];
-    
+
     [_detached addObject:context];
-    
+
     return context;
 }
 
@@ -444,9 +398,9 @@ static HKDataStore *gHKDataStore = nil;
     [[NSNotificationCenter defaultCenter] removeObserver:self
                                                     name:NSManagedObjectContextDidSaveNotification
                                                   object:context];
-    
+
     [_detached removeObject:context];
-    
+
     [context release];
 }
 
@@ -458,7 +412,7 @@ static HKDataStore *gHKDataStore = nil;
     {
         _model = [[NSManagedObjectModel mergedModelFromBundles:[_bundles allObjects]] retain];
     }
-    
+
     if ( _coordinator == nil )
     {
         NSFileManager   *fm = [[[NSFileManager alloc] init] autorelease];
@@ -466,24 +420,24 @@ static HKDataStore *gHKDataStore = nil;
         NSURL           *url;
         NSError         *error = nil;
         NSDictionary    *options = nil;
-        
+
         switch ( _location )
         {
             case HKDataStoreLocationDefault:
                 dir = [NSFileManager applicationSupportDirectory];
                 break;
-                
+
             case HKDataStoreLocationCaches:
                 dir = [NSFileManager cacheDirectory];
                 break;
-                
+
             default:
                 dir = [NSFileManager applicationSupportDirectory];
                 break;
         }
-        
+
         url = [NSURL fileURLWithPath:[dir stringByAppendingPathComponent:_filename]];
-        
+
         if ( ![fm fileExistsAtPath:dir isDirectory:NULL] )
         {
             if ( ![fm createDirectoryAtPath:dir withIntermediateDirectories:NO attributes:nil error:&error] )
@@ -494,26 +448,26 @@ static HKDataStore *gHKDataStore = nil;
                 return;
             }
         }
-        
+
         _coordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:_model];
-        
+
         if ( _usesLightweightMigration )
         {
             options = [NSDictionary dictionaryWithObjectsAndKeys:
                        [NSNumber numberWithBool:YES], NSMigratePersistentStoresAutomaticallyOption,
                        [NSNumber numberWithBool:YES], NSInferMappingModelAutomaticallyOption, nil];
         }
-        
+
         if ( ![_coordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:options error:&error] )
         {
 #ifdef HK_DEBUG_ERRORS
             NSLog(@"HKDataStore::setup->Error: '%@'", error);
 #endif
             [_coordinator release]; _coordinator = nil;
-            
+
 #ifdef HK_DATA_STORE_DELETE_FAULTY_STORE
 #warning "HK_DATA_STORE_DELETE_FAULTY_STORE set"
-            
+
          // if ( [error code] == NSPersistentStoreIncompatibleVersionHashError )
             {
                 [fm copyItemAtURL:url
@@ -521,9 +475,9 @@ static HKDataStore *gHKDataStore = nil;
                                    URLByAppendingPathComponent:
                                    [NSString stringWithFormat:@"Data-old-%lu.db", (NSUInteger) [[NSDate date] timeIntervalSince1970]]]
                             error:&error];
-                
+
                 [fm removeItemAtURL:url error:&error];
-                
+
                 [self setup];
                 return;
             }
@@ -531,16 +485,16 @@ static HKDataStore *gHKDataStore = nil;
             return;
         }
     }
-    
+
     if ( _context == nil )
     {
         _context = [[NSManagedObjectContext alloc] init];
-        
+
         [_context setPersistentStoreCoordinator:_coordinator];
 
         [self enableHandlers]; // enabled by default
     }
-        
+
     _setup = YES;
 }
 
@@ -553,30 +507,30 @@ static HKDataStore *gHKDataStore = nil;
         NSDictionary                *ui = [notification userInfo];
         NSSet                       *objects;
         NSManagedObjectContext      *context = [notification object];
-        
+
         if ( (objects = [ui objectForKey:NSInsertedObjectsKey]) != nil )
-        {   
+        {
             [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
                 HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
-                
+
                 handler( context, objects, HKDataStoreChangeTypeInsertion );
             }];
         }
-        
+
         if ( (objects = [ui objectForKey:NSDeletedObjectsKey]) != nil )
-        {  
+        {
             [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
                 HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
-                
+
                 handler( context, objects, HKDataStoreChangeTypeDeletion );
             }];
         }
-        
+
         if ( (objects = [ui objectForKey:NSUpdatedObjectsKey]) != nil )
-        {  
-            [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {            
+        {
+            [_chandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
                 HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
-                
+
                 handler( context, objects, HKDataStoreChangeTypeUpdate );
             }];
         }
@@ -590,30 +544,30 @@ static HKDataStore *gHKDataStore = nil;
         NSDictionary                *ui = [notification userInfo];
         NSSet                       *objects;
         NSManagedObjectContext      *context = [notification object];
-        
+
         if ( (objects = [ui objectForKey:NSInsertedObjectsKey]) != nil )
-        {   
+        {
             [_shandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
                 HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
-                
+
                 handler( context, objects, HKDataStoreChangeTypeInsertion );
             }];
         }
-        
+
         if ( (objects = [ui objectForKey:NSDeletedObjectsKey]) != nil )
-        {  
+        {
             [_shandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
                 HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
-                
+
                 handler( context, objects, HKDataStoreChangeTypeDeletion );
             }];
         }
-        
+
         if ( (objects = [ui objectForKey:NSUpdatedObjectsKey]) != nil )
-        {  
-            [_shandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {            
+        {
+            [_shandlers enumerateObjectsUsingBlock:^ ( id obj, BOOL *stop ) {
                 HKDataStoreChangeHandler handler = (HKDataStoreChangeHandler) obj;
-                
+
                 handler( context, objects, HKDataStoreChangeTypeUpdate );
             }];
         }
@@ -621,7 +575,7 @@ static HKDataStore *gHKDataStore = nil;
 }
 
 - (void)detachedManagedObjectContextDidSave:(NSNotification *)notification
-{    
+{
     [_context mergeChangesFromContextDidSaveNotification:notification];
 }
 

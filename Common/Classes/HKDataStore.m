@@ -60,8 +60,6 @@
 
 #pragma mark HKPublic API
 
-@synthesize context = _context;
-
 + (id)defaultStore
 {
     static dispatch_once_t once;
@@ -122,19 +120,9 @@
         [self setup];
     }
 
-    dispatch_queue_t main = dispatch_get_main_queue();
-    dispatch_queue_t current = dispatch_get_current_queue();
-
-    if ( current == main )
-    {
+    [_context performBlockAndWait:^{
         handler( _context );
-    }
-    else
-    {
-        dispatch_sync( main, ^{
-            handler( _context );
-        });
-    }
+    }];
 }
 
 - (void)asynchronizedWithContext:(HKDataStoreHandler)handler
@@ -144,9 +132,9 @@
         [self setup];
     }
 
-    dispatch_async( dispatch_get_main_queue(), ^{
+    [_context performBlock:^{
         handler( _context );
-    });
+    }];
 }
 
 - (void)synchronizedAndSaveWithContext:(HKDataStoreHandler)handler
@@ -156,11 +144,7 @@
         [self setup];
     }
 
-    dispatch_queue_t main = dispatch_get_main_queue();
-    dispatch_queue_t current = dispatch_get_current_queue();
-
-    if ( current == main )
-    {
+    [_context performBlockAndWait:^{
         NSError *error = nil;
 
         handler( _context );
@@ -171,22 +155,7 @@
             NSLog(@"HKDataStore::synchronizedAndSaveWithContext->Error: '%@' : '%@'", error, [[error userInfo] objectForKey:NSDetailedErrorsKey]);
 #endif
         }
-    }
-    else
-    {
-        dispatch_sync( main, ^{
-            NSError *error = nil;
-
-            handler( _context );
-
-            if ( ![_context save:&error] )
-            {
-#ifdef HK_DEBUG_ERRORS
-                NSLog(@"HKDataStore::synchronizedAndSaveWithContext->Error: '%@' : '%@'", error, [[error userInfo] objectForKey:NSDetailedErrorsKey]);
-#endif
-            }
-        });
-    }
+    }];
 }
 
 - (void)asynchronizedAndSaveWithContext:(HKDataStoreHandler)handler
@@ -196,7 +165,7 @@
         [self setup];
     }
 
-    dispatch_async( dispatch_get_main_queue(), ^{
+    [_context performBlock:^{
         NSError *error = nil;
 
         handler( _context );
@@ -204,10 +173,10 @@
         if ( ![_context save:&error] )
         {
 #ifdef HK_DEBUG_ERRORS
-            NSLog(@"HKDataStore::asynchronizedAndSaveWithContext->Error: '%@' : '%@'", error, [[error userInfo] objectForKey:NSDetailedErrorsKey]);
+            NSLog(@"HKDataStore::synchronizedAndSaveWithContext->Error: '%@' : '%@'", error, [[error userInfo] objectForKey:NSDetailedErrorsKey]);
 #endif
         }
-    });
+    }];
 }
 
 - (void)registerChangeHandler:(HKDataStoreChangeHandler)handler
@@ -378,7 +347,7 @@
     if ( _detached == nil )
         _detached = [[NSMutableSet alloc] init];
 
-    NSManagedObjectContext *context = [[NSManagedObjectContext alloc] init];
+    NSManagedObjectContext *context = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
 
     [context setPersistentStoreCoordinator:_coordinator];
     [context setMergePolicy:[_context mergePolicy]];
@@ -488,7 +457,7 @@
 
     if ( _context == nil )
     {
-        _context = [[NSManagedObjectContext alloc] init];
+        _context = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
 
         [_context setPersistentStoreCoordinator:_coordinator];
 

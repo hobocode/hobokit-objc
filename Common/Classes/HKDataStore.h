@@ -59,6 +59,7 @@ typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *
 }
 
 @property (readonly) NSManagedObjectContext *context;
+@property (readonly) NSManagedObjectModel *model;
 
 @end
 

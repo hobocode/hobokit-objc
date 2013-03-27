@@ -442,7 +442,7 @@
                 [fm copyItemAtURL:url
                             toURL:[[url URLByDeletingLastPathComponent]
                                    URLByAppendingPathComponent:
-                                   [NSString stringWithFormat:@"Data-old-%lu.db", (NSUInteger) [[NSDate date] timeIntervalSince1970]]]
+                                   [NSString stringWithFormat:@"Data-old-%lu.db", (unsigned long)[[NSDate date] timeIntervalSince1970]]]
                             error:&error];
 
                 [fm removeItemAtURL:url error:&error];

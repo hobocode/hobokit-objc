@@ -81,6 +81,11 @@
     }
 }
 
+- (NSString *)filename
+{
+    return _filename;
+}
+
 - (void)addModelBundle:(NSBundle *)bundle
 {
     @synchronized (self)

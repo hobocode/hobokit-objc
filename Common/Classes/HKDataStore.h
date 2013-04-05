@@ -68,6 +68,7 @@ typedef void (^HKDataStoreSaveHandler)( NSManagedObjectContext *context, NSSet *
 + (id)defaultStore;
 
 - (void)setFilename:(NSString *)filename;
+- (NSString *)filename;
 
 - (void)addModelBundle:(NSBundle *)bundle;
 - (void)setDataStoreLocation:(HKDataStoreLocation)location;

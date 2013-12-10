@@ -37,8 +37,6 @@
 
 @end
 
-#import "JSONKit.h"
-
 @implementation HKRESTAPIJSONResultAdapter
 
 - (id)resultForData:(NSData *)data error:(NSError **)error
@@ -47,11 +45,7 @@
   
     if ( [data length] > 0 )
     {
-        JSONDecoder *decoder = [[JSONDecoder alloc] initWithParseOptions:JKParseOptionNone];
-        
-        retval = [decoder objectWithData:data error:error];
-        
-        [decoder release];
+        retval = [NSJSONSerialization JSONObjectWithData:data options:0 error:error];
     }
     
     return retval;

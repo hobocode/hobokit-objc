@@ -352,7 +352,7 @@
     if ( _detached == nil )
         _detached = [[NSMutableSet alloc] init];
 
-    NSManagedObjectContext *context = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
+    NSManagedObjectContext *context = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
 
     [context setPersistentStoreCoordinator:_coordinator];
     [context setMergePolicy:[_context mergePolicy]];
@@ -462,7 +462,7 @@
 
     if ( _context == nil )
     {
-        _context = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSPrivateQueueConcurrencyType];
+        _context = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
 
         [_context setPersistentStoreCoordinator:_coordinator];
 

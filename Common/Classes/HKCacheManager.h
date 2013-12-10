@@ -41,6 +41,7 @@ typedef void (^HKCacheManagerProgressHandler)( double progress );
 	sqlite3			   *_database;
 	sqlite3_stmt	   *_select;
 	sqlite3_stmt	   *_insert;
+	sqlite3_stmt	   *_update;
 	sqlite3_stmt	   *_selectIdentifiers;
 	dispatch_queue_t	_queue;
 

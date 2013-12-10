@@ -279,7 +279,7 @@
     
     if ( [self ensureRequiredFieldsFilled] )
     {
-        [self.parentViewController dismissModalViewControllerAnimated:YES];
+        [self.parentViewController dismissViewControllerAnimated:YES completion:nil];
     
         [[NSNotificationCenter defaultCenter] postNotificationName:HK_FORM_NOTIFICATION_DONE_EDITING object:self];
     }
@@ -287,7 +287,7 @@
 
 - (IBAction)handleCancel:(id)sender
 {
-    [self.parentViewController dismissModalViewControllerAnimated:YES];
+    [self.parentViewController dismissViewControllerAnimated:YES completion:nil];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:HK_FORM_NOTIFICATION_CANCELED_EDITING object:self];
 }

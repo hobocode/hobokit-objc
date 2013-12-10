@@ -25,7 +25,7 @@
 #import <Foundation/Foundation.h>
 
 #ifdef HK_DEBUG
-# define HK_DEBUG_REST_API
+// # define HK_DEBUG_REST_API
 # ifdef HK_DEBUG_REST_API
 #  define HK_DEBUG_REST_API_PROFILE
 #  define HK_DEBUG_REST_API_DATA

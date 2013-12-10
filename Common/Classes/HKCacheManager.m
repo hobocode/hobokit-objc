@@ -186,6 +186,24 @@ static HKCacheManager *gHKCacheManager = nil;
     return retval;
 }
 
+- (void)clearFastCacheForIdentifier:(NSString *)identifier
+{
+    NSNumber    *csize;
+    NSUInteger   index = [_fastcacheIdentifiers indexOfObject:identifier];
+    
+    if ( index == NSNotFound )
+        return;
+    
+    csize = [_fastcacheSizes objectAtIndex:index];
+        
+    [_fastcache removeObjectForKey:identifier];
+    
+    _fastcacheSize -= [csize unsignedIntegerValue];
+    
+    [_fastcacheIdentifiers removeObjectAtIndex:index];
+    [_fastcacheSizes removeObjectAtIndex:index];
+}
+
 - (void)cacheData:(NSData *)data withIdentifier:(NSString *)identifier
 {
     if ( identifier == nil )
@@ -203,17 +221,34 @@ static HKCacheManager *gHKCacheManager = nil;
     const int cdlength = (int)[data length];
     
     dispatch_sync( _queue, ^ {
-        sqlite3_bind_text( _insert, 1, cidentifier, cilength, NULL );
-        sqlite3_bind_blob( _insert, 2, cdata, cdlength, NULL );
+        sqlite3_bind_blob( _update, 1, cdata, cdlength, NULL );
+        sqlite3_bind_text( _update, 2, cidentifier, cilength, NULL );
         
-        if ( sqlite3_step( _insert ) == SQLITE_DONE )
+        sqlite3_step( _update );
+        sqlite3_reset( _update );
+        
+        if ( sqlite3_changes( _database ) > 0 )
         {
 #ifdef HK_DEBUG_CACHE
-            NSLog(@"HKCacheManager->Successfully saved cache with identifier: %@", identifier);
+            NSLog(@"HKCacheManager->Successfully updated cache with identifier: %@", identifier);
 #endif
         }
+        else
+        {
+            sqlite3_bind_text( _insert, 1, cidentifier, cilength, NULL );
+            sqlite3_bind_blob( _insert, 2, cdata, cdlength, NULL );
+            
+            if ( sqlite3_step( _insert ) == SQLITE_DONE )
+            {
+#ifdef HK_DEBUG_CACHE
+                NSLog(@"HKCacheManager->Successfully saved cache with identifier: %@", identifier);
+#endif
+            }
+            
+            sqlite3_reset( _insert );
+        }
         
-        sqlite3_reset( _insert );
+        [self clearFastCacheForIdentifier:identifier];
     });
     
 #ifdef HK_DEBUG_CACHE
@@ -230,14 +265,12 @@ static HKCacheManager *gHKCacheManager = nil;
 
 - (void)cacheURL:(NSURL *)url identifier:(NSString *)identifier progressHandler:(HKCacheManagerProgressHandler)progressHandler completionHandler:(HKCacheManagerCompletionHandler)completionHandler
 {
-    dispatch_queue_t cqueue = dispatch_get_current_queue();
-
     dispatch_async( dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0 ), ^ {
         HKURLOperation *operation = [[HKURLOperation alloc] initWithURL:url
                                                         progressHandler:^( double progress ) {
                                                             if ( progressHandler != nil )
                                                             {
-                                                                dispatch_async( cqueue, ^{
+                                                                dispatch_async( dispatch_get_main_queue(), ^{
                                                                     progressHandler( progress ); 
                                                                 });
                                                             }
@@ -254,13 +287,13 @@ static HKCacheManager *gHKCacheManager = nil;
                                                               
                                                               [self cacheData:data withIdentifier:sid];
                                                               
-                                                              dispatch_async( cqueue, ^{
+                                                              dispatch_async( dispatch_get_main_queue(), ^{
                                                                   completionHandler( YES, sid, nil );
                                                               });
                                                           }
                                                           else
                                                           {
-                                                              dispatch_async( cqueue, ^{
+                                                              dispatch_async( dispatch_get_main_queue(), ^{
                                                                   completionHandler( NO, nil, error );
                                                               });
                                                           }
@@ -420,6 +453,19 @@ static HKCacheManager *gHKCacheManager = nil;
             {
 #ifdef HK_DEBUG_CACHE
                 NSLog(@"HKCacheManager->Error: 'Couldn't create database data insert statement!'");
+#endif
+                return NO;
+            }
+            
+            if ( _update )
+            {
+                sqlite3_finalize( _update ); _update = nil;
+            }
+            
+            if ( sqlite3_prepare_v2( _database, "UPDATE cache SET data = ? WHERE identifier = ?", -1, &_update, NULL ) != SQLITE_OK )
+            {
+#ifdef HK_DEBUG_CACHE
+                NSLog(@"HKCacheManager->Error: 'Couldn't create database data update statement!'");
 #endif
                 return NO;
             }

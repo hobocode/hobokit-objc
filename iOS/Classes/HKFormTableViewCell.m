@@ -40,12 +40,12 @@
 		self.formSeparator.backgroundColor = [UIColor lightGrayColor];
 		
 		self.formLabel = [[[UILabel alloc] initWithFrame:flf] autorelease];
-		self.formLabel.textAlignment = UITextAlignmentRight;
+		self.formLabel.textAlignment = NSTextAlignmentRight;
 		self.formLabel.textColor = [UIColor colorWithRed:(56.0 / 255.0) green:(77.0 / 255.0) blue:(130.0 / 255.0) alpha:1.0];
 		self.formLabel.backgroundColor = [UIColor clearColor];
 		self.formLabel.font = [UIFont boldSystemFontOfSize:14.0];
 		self.formLabel.numberOfLines = 0;
-		self.formLabel.lineBreakMode = UILineBreakModeWordWrap;
+		self.formLabel.lineBreakMode = NSLineBreakByWordWrapping;
 		
 		self.formField = [[[UITextField alloc] initWithFrame:fff] autorelease];
 		self.formField.font = [UIFont boldSystemFontOfSize:14.0];

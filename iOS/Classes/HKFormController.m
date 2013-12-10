@@ -26,7 +26,9 @@
 
 #import "HKFormTableViewCell.h"
 
-@interface HKFormController (Private)
+@interface HKFormController ()
+
+@property (assign) UIEdgeInsets originalInset;
 
 - (HKFormTableViewCell *)cellWithTextField:(UITextField *)textField;
 
@@ -90,14 +92,16 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-
+    
     [self setupEnclosingNavigationController];
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShowNotification:) name:UIKeyboardDidShowNotification object:nil];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidHideNotification:) name:UIKeyboardDidHideNotification object:nil];
 }
 
 - (void)setupEnclosingNavigationController
-{    
+{
     self.title = [self.definition objectForKey:@"title"];
     self.navigationItem.rightBarButtonItem = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone
                                                                                             target:self
@@ -185,11 +189,12 @@
     CGRect tframe = self.tableView.frame;
     CGRect kframe = [self.view convertRect:self.currentKeyboardFrame fromView:nil];
     CGRect intersect = CGRectIntersection( tframe, kframe );
-        
+    
     if ( CGRectIsNull( intersect ) )
         return;
     
-    self.tableView.contentInset = UIEdgeInsetsMake( 0.0, 0.0, intersect.size.height, 0.0 );
+    self.originalInset = self.tableView.contentInset;
+    self.tableView.contentInset = UIEdgeInsetsMake( self.tableView.contentInset.top, 0.0, intersect.size.height, 0.0 );
 }
 
 - (void)ensureTableViewCellVisible:(UITableViewCell *)tableViewCell
@@ -248,7 +253,7 @@
                                                   cancelButtonTitle:[self localize:@"OK"]
                                                   otherButtonTitles:nil];
         NSInteger   tag = ( HK_FORM_TAG_OFFSET + section * 1000 + row );
-
+        
         [alertView show];
         
         while ( alertView.visible && [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.1]] )
@@ -256,7 +261,7 @@
         }
         
         [alertView release];
-                
+        
         field = (UITextField *) [self.view viewWithTag:tag];
         
         if ( field )
@@ -280,7 +285,7 @@
     if ( [self ensureRequiredFieldsFilled] )
     {
         [self.parentViewController dismissViewControllerAnimated:YES completion:nil];
-    
+        
         [[NSNotificationCenter defaultCenter] postNotificationName:HK_FORM_NOTIFICATION_DONE_EDITING object:self];
     }
 }
@@ -312,10 +317,17 @@
     [self ensureTableViewCellVisible:[self cellWithTextField:self.currentTextField]];
 }
 
+
+- (void)keyboardDidHideNotification:(NSNotification *)notification
+{
+    self.tableView.contentInset = self.originalInset;
+}
+
+
 #pragma mark UITextFieldDelegate Methods
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField
-{    
+{
     _editing = YES; self.currentTextField = textField;
     
     [self ensureTableViewCellVisible:[self cellWithTextField:self.currentTextField]];
@@ -338,7 +350,7 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
-{    
+{
     return [[[[self.definition objectForKey:@"sections"] objectAtIndex:section] objectForKey:@"children"] count];
 }
 
@@ -366,7 +378,7 @@
     
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     
-    cell.formLabel.text = [[self localize:[child objectForKey:@"title"]] lowercaseString];
+    cell.formLabel.text = [self localize:[child objectForKey:@"title"]];
     
     cell.formField.placeholder = [NSString stringWithFormat:@"%@%@%@", [self localize:[child objectForKey:@"placeholder"]], ( required ? @"" : @" " ), ( required ? @"" : [self localize:@"(optional)"] )];
     

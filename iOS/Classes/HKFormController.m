@@ -395,6 +395,7 @@
     {
         cell.formField.keyboardType = UIKeyboardTypeEmailAddress;
         cell.formField.autocapitalizationType = UITextAutocapitalizationTypeNone;
+        cell.formField.autocorrectionType = UITextAutocorrectionTypeNo;
     }
     else if ( [[child objectForKey:@"keyboard"] isEqualToString:@"phone"] )
     {
